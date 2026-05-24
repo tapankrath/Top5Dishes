@@ -77,13 +77,7 @@
   .brand-text{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.4px;line-height:1;}
   .brand-text b{color:var(--coral);}
   .brand-text .tag{display:block;font-family:'Plus Jakarta Sans';font-weight:500;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-faint);text-transform:uppercase;margin-top:3px;}
-  .gear{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);
-    display:grid;place-items:center;cursor:pointer;flex:none;box-shadow:var(--shadow-sm);transition:transform .15s;}
-  .gear:active{transform:scale(.92);}
-  .gear svg{width:20px;height:20px;stroke:var(--ink-soft);}
-  .gear.alert::after{content:'';position:absolute;width:9px;height:9px;border-radius:50%;background:var(--coral);
-    transform:translate(13px,-13px);border:2px solid var(--bg);}
-  .gear{position:relative;}
+
   /* ---- hero ---- */
   .hero{animation:rise .6s cubic-bezier(.2,.7,.2,1) both;}
   h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
@@ -197,27 +191,7 @@
   .again svg{width:18px;height:18px;stroke:var(--coral);}
   .disclaimer{margin-top:14px;text-align:center;color:var(--ink-faint);font-size:11px;line-height:1.5;}
   footer{text-align:center;color:var(--ink-faint);font-size:11px;padding-top:24px;opacity:.7;}
-  /* ---- modal (API key) ---- */
-  .overlay{position:fixed;inset:0;z-index:50;background:rgba(31,26,23,0.45);backdrop-filter:blur(4px);
-    display:grid;place-items:end center;animation:fade .25s both;}
-  .sheet{background:var(--bg);width:100%;max-width:540px;border-radius:24px 24px 0 0;padding:24px 22px 30px;
-    box-shadow:0 -10px 40px rgba(0,0,0,0.2);animation:slideup .3s cubic-bezier(.2,.7,.2,1) both;}
-  .sheet h3{font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;letter-spacing:-0.3px;}
-  .sheet p{color:var(--ink-soft);font-size:13.5px;line-height:1.55;margin-top:8px;}
-  .sheet p a{color:var(--coral);font-weight:600;text-decoration:none;}
-  .sheet label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:18px 0 7px;letter-spacing:.3px;}
-  .sheet input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;
-    font-family:'Plus Jakarta Sans';font-size:14px;outline:none;color:var(--ink);}
-  .sheet input:focus{border-color:var(--coral);}
-  .sheet-row{display:flex;gap:10px;margin-top:18px;}
-  .btn-primary{flex:1;background:linear-gradient(140deg,var(--coral),var(--coral-deep));color:#fff;border:none;
-    border-radius:13px;padding:14px;font-family:'Plus Jakarta Sans';font-size:15px;font-weight:700;cursor:pointer;}
-  .btn-ghost{flex:none;padding:14px 18px;background:transparent;color:var(--ink-soft);border:1px solid var(--line);
-    border-radius:13px;font-family:'Plus Jakarta Sans';font-size:15px;font-weight:600;cursor:pointer;}
-  .key-status{font-size:12px;margin-top:12px;display:flex;align-items:center;gap:6px;}
-  .key-status.ok{color:var(--green);} .key-status.no{color:var(--ink-faint);}
-  .key-note{margin-top:14px;font-size:11.5px;color:var(--ink-faint);line-height:1.5;background:var(--bg-tint);
-    padding:11px 13px;border-radius:11px;}
+
   @keyframes spin{to{transform:rotate(360deg);}}
   @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
   @keyframes fade{from{opacity:0;}to{opacity:1;}}
@@ -236,11 +210,7 @@
       </div>
       <div class="brand-text">Fork<b>&amp;</b>Find<span class="tag">Eat the best, everywhere</span></div>
     </div>
-    <div class="gear" id="gearBtn" aria-label="Settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>
-      </svg>
-    </div>
+
   </div>
 
   <!-- HOME -->
@@ -363,24 +333,6 @@
   <footer>Fork&amp;Find · Menus &amp; prices change — confirm in person</footer>
 </div>
 
-<!-- API KEY SHEET -->
-<div class="overlay hidden" id="overlay">
-  <div class="sheet">
-    <h3>Connect your API key</h3>
-    <p>This app asks Claude to search the web for you. To run on your own site, paste an Anthropic API key — get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.</p>
-    <label for="keyInput">Anthropic API key</label>
-    <input id="keyInput" type="password" placeholder="sk-ant-…" autocomplete="off">
-    <div class="key-status no" id="keyStatus">No key saved yet</div>
-    <div class="key-note">🔒 Your key is stored only on this device, in your browser. It never leaves your phone except to call Anthropic directly. For a public app shared with others, use a backend proxy instead (see notes).</div>
-    <div class="sheet-row">
-      <button class="btn-ghost" id="keyClear">Clear</button>
-      <button class="btn-primary" id="keySave">Save key</button>
-    </div>
-    <button class="btn-ghost" id="testBtn" style="width:100%;margin-top:12px;">Test connection</button>
-    <div class="key-status no" id="testStatus" style="white-space:pre-line;"></div>
-  </div>
-</div>
-
 <script>
 const $ = id => document.getElementById(id);
 const views = {home:$('home'),loading:$('loading'),error:$('error'),restaurants:$('restaurants'),dishes:$('dishes')};
@@ -394,83 +346,9 @@ function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==
    ======================================================== */
 const PROXY_URL = "https://top5dishes.tapanr.workers.dev";
 
-/* ---------- API key handling ---------- */
-const KEY_NAME='fnf_anthropic_key';
-let apiKey = '';
-try{ apiKey = localStorage.getItem(KEY_NAME) || ''; }catch(e){}
-// NOTE: when running inside Claude's artifact viewer, leave the key blank —
-// the platform injects credentials automatically. The key is only needed on
-// your own hosted site (e.g. GitHub Pages).
-const RUNNING_IN_CLAUDE = location.hostname.endsWith('claude.ai') || location.hostname.endsWith('claudeusercontent.com') || location.hostname==='localhost';
-
-function refreshKeyUI(){
-  const has = !!apiKey;
-  $('keyStatus').className = 'key-status ' + (has?'ok':'no');
-  $('keyStatus').textContent = has ? '✓ Key saved on this device' : 'No key saved yet';
-  $('keyInput').value = has ? apiKey : '';
-  $('gearBtn').classList.toggle('alert', !has && !RUNNING_IN_CLAUDE && !PROXY_URL);
-}
-$('gearBtn').addEventListener('click', ()=>{ refreshKeyUI(); $('overlay').classList.remove('hidden'); });
-$('overlay').addEventListener('click', e=>{ if(e.target===$('overlay')) $('overlay').classList.add('hidden'); });
-$('keySave').addEventListener('click', ()=>{
-  const v=$('keyInput').value.trim();
-  apiKey=v; try{ localStorage.setItem(KEY_NAME,v); }catch(e){}
-  refreshKeyUI(); $('overlay').classList.add('hidden');
-});
-$('keyClear').addEventListener('click', ()=>{
-  apiKey=''; try{ localStorage.removeItem(KEY_NAME); }catch(e){}
-  refreshKeyUI();
 });
 
-/* ---------- connection diagnostics ---------- */
-$('testBtn').addEventListener('click', async ()=>{
-  const s = $('testStatus');
-  s.className = 'key-status no';
-  if(!PROXY_URL){
-    s.className='key-status no';
-    s.textContent='No proxy URL set in the code. You are on the browser-key path, which may not support web search.';
-    return;
-  }
-  s.textContent='Testing '+PROXY_URL+' …';
-  // Step 1: is the Worker reachable at all? (a GET should return its "POST only" message)
-  try{
-    const ping = await fetch(PROXY_URL, {method:'GET'});
-    if(ping.status===405 || ping.ok){
-      // reachable. Now try a tiny real request.
-    } else if(ping.status===0){
-      s.className='key-status no';
-      s.textContent='⚠ Reached something but got a blocked/empty response. Likely a CORS origin mismatch — make sure the Worker ALLOWED_ORIGIN is exactly https://tapankrath.github.io';
-      return;
-    }
-  }catch(err){
-    s.className='key-status no';
-    s.textContent='✗ Cannot reach the Worker at all.\nThe URL is wrong or the Worker is not deployed.\nOpen '+PROXY_URL+' directly in a browser — you should see {"error":"POST only"}.';
-    return;
-  }
-  // Step 2: real round-trip (small request, no web search) to check the key/secret.
-  try{
-    const r = await fetch(PROXY_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:16,
-        messages:[{role:'user', content:'Reply with the single word: ok'}]})
-    });
-    const txt = await r.text();
-    if(r.ok){
-      s.className='key-status ok';
-      s.textContent='✓ Connected! The Worker and key both work. Web search should now work too — if not, enable the web search tool in your Anthropic Console.';
-    } else if(r.status===401 || r.status===403 || /authentication/i.test(txt)){
-      s.className='key-status no';
-      s.textContent='✗ Worker reached, but the API key was rejected.\nCheck the ANTHROPIC_API_KEY secret in the Cloudflare Worker settings.';
-    } else {
-      s.className='key-status no';
-      s.textContent='✗ Worker reached but returned an error ('+r.status+'):\n'+txt.slice(0,160);
-    }
-  }catch(err){
-    s.className='key-status no';
-    s.textContent='✗ The Worker is reachable but the POST failed — almost certainly a CORS origin mismatch.\nSet ALLOWED_ORIGIN in worker.js to exactly https://tapankrath.github.io and redeploy.';
-  }
-});
-refreshKeyUI();
+
 
 /* ---------- loading copy ---------- */
 const loadingLines=["Scanning recent reviews…","Checking ratings & favourites…","Ranking the best spots…","Almost there…"];
@@ -562,19 +440,8 @@ async function askClaude(promptText){
     tools:[{type:"web_search_20250305",name:"web_search"}]
   };
 
-  let url, headers;
-  if (PROXY_URL) {
-    // Preferred path: your backend proxy. Web search works here, key stays secret.
-    url = PROXY_URL;
-    headers = {"Content-Type":"application/json"};
-  } else {
-    // Fallback: direct browser call (works inside Claude's preview; on a public
-    // site it needs a key AND may not support the web_search tool).
-    url = "https://api.anthropic.com/v1/messages";
-    headers = {"Content-Type":"application/json"};
-    if(apiKey){ headers["x-api-key"]=apiKey; headers["anthropic-version"]="2023-06-01";
-                headers["anthropic-dangerous-direct-browser-access"]="true"; }
-  }
+  const url = PROXY_URL || "https://api.anthropic.com/v1/messages";
+  const headers = {"Content-Type":"application/json"};
 
   let res;
   try { res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)}); }
@@ -622,10 +489,6 @@ function handleErr(e){
   console.error('[Fork&Find]', e);
   if(e.message==="auth"){
     fail("API key rejected — check the ANTHROPIC_API_KEY secret in your Cloudflare Worker, or tap ⚙ to update it.");
-  } else if(!PROXY_URL && !apiKey && !RUNNING_IN_CLAUDE){
-    fail("No API key or proxy set. Tap ⚙ to add your Anthropic key.");
-  } else if(e instanceof SyntaxError){
-    fail("Got a response but couldn't parse it. Open the browser console (F12) to see the raw reply from the Worker.");
   } else {
     const hint = (e.message==="net"||e.message==="Failed to fetch"||e.name==="TypeError")
       ? "Network/CORS error. Make sure your Worker's ALLOWED_ORIGIN matches: "+location.origin
