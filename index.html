@@ -281,6 +281,8 @@
       <button class="btn-ghost" id="keyClear">Clear</button>
       <button class="btn-primary" id="keySave">Save key</button>
     </div>
+    <button class="btn-ghost" id="testBtn" style="width:100%;margin-top:12px;">Test connection</button>
+    <div class="key-status no" id="testStatus" style="white-space:pre-line;"></div>
   </div>
 </div>
 
@@ -323,6 +325,55 @@ $('keySave').addEventListener('click', ()=>{
 $('keyClear').addEventListener('click', ()=>{
   apiKey=''; try{ localStorage.removeItem(KEY_NAME); }catch(e){}
   refreshKeyUI();
+});
+
+/* ---------- connection diagnostics ---------- */
+$('testBtn').addEventListener('click', async ()=>{
+  const s = $('testStatus');
+  s.className = 'key-status no';
+  if(!PROXY_URL){
+    s.className='key-status no';
+    s.textContent='No proxy URL set in the code. You are on the browser-key path, which may not support web search.';
+    return;
+  }
+  s.textContent='Testing '+PROXY_URL+' …';
+  // Step 1: is the Worker reachable at all? (a GET should return its "POST only" message)
+  try{
+    const ping = await fetch(PROXY_URL, {method:'GET'});
+    if(ping.status===405 || ping.ok){
+      // reachable. Now try a tiny real request.
+    } else if(ping.status===0){
+      s.className='key-status no';
+      s.textContent='⚠ Reached something but got a blocked/empty response. Likely a CORS origin mismatch — make sure the Worker ALLOWED_ORIGIN is exactly https://tapankrath.github.io';
+      return;
+    }
+  }catch(err){
+    s.className='key-status no';
+    s.textContent='✗ Cannot reach the Worker at all.\nThe URL is wrong or the Worker is not deployed.\nOpen '+PROXY_URL+' directly in a browser — you should see {"error":"POST only"}.';
+    return;
+  }
+  // Step 2: real round-trip (small request, no web search) to check the key/secret.
+  try{
+    const r = await fetch(PROXY_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:16,
+        messages:[{role:'user', content:'Reply with the single word: ok'}]})
+    });
+    const txt = await r.text();
+    if(r.ok){
+      s.className='key-status ok';
+      s.textContent='✓ Connected! The Worker and key both work. Web search should now work too — if not, enable the web search tool in your Anthropic Console.';
+    } else if(r.status===401 || r.status===403 || /authentication/i.test(txt)){
+      s.className='key-status no';
+      s.textContent='✗ Worker reached, but the API key was rejected.\nCheck the ANTHROPIC_API_KEY secret in the Cloudflare Worker settings.';
+    } else {
+      s.className='key-status no';
+      s.textContent='✗ Worker reached but returned an error ('+r.status+'):\n'+txt.slice(0,160);
+    }
+  }catch(err){
+    s.className='key-status no';
+    s.textContent='✗ The Worker is reachable but the POST failed — almost certainly a CORS origin mismatch.\nSet ALLOWED_ORIGIN in worker.js to exactly https://tapankrath.github.io and redeploy.';
+  }
 });
 refreshKeyUI();
 
