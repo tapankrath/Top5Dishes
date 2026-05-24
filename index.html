@@ -513,22 +513,33 @@ async function askClaude(promptText, maxTokens=2000, _retried=0){
   return JSON.parse(j);
 }
 
-/* ── reverse geocode via nominatim (free, no key) ── */
+/* ── reverse geocode — tries BigDataCloud first (handles CDPs), falls back to Nominatim ── */
 async function reverseGeocode(lat, lng){
+  // Try BigDataCloud — free, no key, great with US unincorporated areas & CDPs
   try{
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=14`,
-      {headers:{'Accept-Language':'en','User-Agent':'ForkAndFind/1.0'}});
-    if(!res.ok) return null;
-    const d = await res.json();
-    const a = d.address||{};
-    // Build: "Neighbourhood, City, State" — most specific first
-    const parts = [
-      a.neighbourhood||a.suburb||a.quarter||a.hamlet,
-      a.city||a.town||a.village||a.county,
-      a.state
-    ].filter(Boolean);
-    return parts.slice(0,2).join(', ') || d.display_name?.split(',').slice(0,2).join(',') || null;
-  }catch(e){ console.warn('[geocode]',e); return null; }
+    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
+    if(res.ok){
+      const d = await res.json();
+      const city = d.locality || d.city || d.principalSubdivisionCode;
+      const state = d.principalSubdivision || '';
+      if(city) return `${city}, ${state}`.trim().replace(/,\s*$/, '');
+    }
+  }catch(e){ console.warn('[geocode bigdatacloud]', e); }
+
+  // Fallback: Nominatim
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
+      {headers:{'Accept-Language':'en'}});
+    if(res.ok){
+      const d = await res.json();
+      const a = d.address||{};
+      const city = a.city||a.town||a.village||a.suburb||a.county;
+      const state = a.state;
+      if(city) return `${city}, ${state}`;
+    }
+  }catch(e){ console.warn('[geocode nominatim]', e); }
+
+  return null;
 }
 
 async function getRestaurants(lat,lng){
