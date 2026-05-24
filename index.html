@@ -512,20 +512,45 @@ async function askClaude(promptText, maxTokens=2000, _retried=false){
   return JSON.parse(j);
 }
 
+/* ── reverse geocode via nominatim (free, no key) ── */
+async function reverseGeocode(lat, lng){
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=14`,
+      {headers:{'Accept-Language':'en','User-Agent':'ForkAndFind/1.0'}});
+    if(!res.ok) return null;
+    const d = await res.json();
+    const a = d.address||{};
+    // Build: "Neighbourhood, City, State" — most specific first
+    const parts = [
+      a.neighbourhood||a.suburb||a.quarter||a.hamlet,
+      a.city||a.town||a.village||a.county,
+      a.state
+    ].filter(Boolean);
+    return parts.slice(0,2).join(', ') || d.display_name?.split(',').slice(0,2).join(',') || null;
+  }catch(e){ console.warn('[geocode]',e); return null; }
+}
+
 async function getRestaurants(lat,lng){
-  show('loading'); $('loadMain').textContent='Finding great spots near you…'; runSteps();
+  show('loading'); $('loadMain').textContent='Finding you…'; runSteps();
   const cuisineHint = selectedCuisine ? ` Only include restaurants serving any of these cuisines: ${selectedCuisine}. Mix them across the five if several are listed.` : '';
 
+  // Step 0: reverse geocode for accurate location name
+  const locName = await reverseGeocode(lat, lng);
+  if(locName) $('loadMain').textContent = `Finding spots near ${locName}…`;
+
   // Step 1: get restaurant list
-  const p=`You are a local food guide with live web access. The user is at GPS latitude ${lat}, longitude ${lng}.
-Use web search to identify the area/neighbourhood, then list FIVE popular restaurants near there.${cuisineHint}
+  const locHint = locName
+    ? `The user is in ${locName} (GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)}).`
+    : `The user is at GPS latitude ${lat}, longitude ${lng}.`;
+  const p=`You are a local food guide with live web access. ${locHint}
+Use web search to find FIVE highly-rated, popular restaurants near this exact location.${cuisineHint}
 CRITICAL RULES — you MUST follow these:
 1. Always return exactly 5 restaurants. NEVER return found:false.
-2. If live data is incomplete, use your training knowledge of well-known spots in that area.
+2. Use the provided location name — do NOT guess or substitute a different city.
 3. Ratings/reviews/distance can be approximate or omitted ("") — never refuse just because data is imperfect.
 4. Be helpful and confident. The user just wants suggestions.
 Respond with ONLY raw JSON, no markdown, no explanation:
-{"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
+{"found":true,"area":"${locName||'nearby'}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
   let r;
   try{
     r=await askClaude(p, 1200); stopSteps();
