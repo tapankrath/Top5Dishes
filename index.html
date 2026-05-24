@@ -630,10 +630,12 @@ async function callClaude(promptText, maxTokens, useSearch, _retried=0){
   };
 
   const apiKey = getAnthropicKey();
-  const url = apiKey ? "https://api.anthropic.com/v1/messages" : PROXY_URL;
-  const headers = apiKey
-    ? {"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}
-    : {"Content-Type":"application/json"};
+  // Always prefer the proxy (no CORS issues); only call Anthropic directly if no proxy is configured
+  const useProxy = PROXY_URL && PROXY_URL !== "";
+  const url = useProxy ? PROXY_URL : "https://api.anthropic.com/v1/messages";
+  const headers = useProxy
+    ? {"Content-Type":"application/json"}
+    : {"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"};
 
   let res;
   try { res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)}); }
