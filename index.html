@@ -177,10 +177,58 @@
   .disclaimer{margin-top:14px;text-align:center;color:var(--ink-faint);font-size:11px;line-height:1.5;}
   footer{text-align:center;color:var(--ink-faint);font-size:11px;padding-top:24px;opacity:.7;}
 
+
+  /* ---- dietary filter bar (dish screen) ---- */
+  .diet-row{margin:12px 0 4px;display:flex;flex-wrap:wrap;gap:5px;}
+  .dchip{background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);border-radius:20px;
+    padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;
+    display:inline-flex;align-items:center;gap:3px;}
+  .dchip.sel{background:var(--coral-tint);border-color:var(--coral);color:var(--coral-deep);}
+  .dchip:active{transform:scale(.95);}
+  /* ---- dish card expand ---- */
+  .dish{cursor:pointer;user-select:none;}
+  .dish .ddetail{display:none;margin-top:10px;padding:12px 14px;background:var(--bg-tint);
+    border-radius:12px;border-left:2px solid var(--coral);font-size:13px;line-height:1.6;color:var(--ink-soft);}
+  .dish.open .ddetail{display:block;}
+  .dish .dexpand{flex:none;width:24px;height:24px;border-radius:50%;background:var(--bg-tint);
+    display:grid;place-items:center;color:var(--ink-faint);font-size:14px;transition:transform .2s;margin-top:2px;}
+  .dish.open .dexpand{transform:rotate(180deg);background:var(--coral-tint);color:var(--coral);}
+  /* ---- surprise me button ---- */
+  .surprise-btn{width:100%;margin-top:14px;border:2px dashed var(--coral);background:transparent;color:var(--coral);
+    border-radius:16px;padding:14px;font-family:'Plus Jakarta Sans';font-size:15px;font-weight:700;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;}
+  .surprise-btn:active{background:var(--coral-tint);}
+  /* ---- surprise spotlight ---- */
+  .surprise-card{display:none;margin-top:12px;background:linear-gradient(140deg,var(--coral),var(--coral-deep));
+    color:#fff;border-radius:20px;padding:22px 20px;text-align:center;animation:rise .4s cubic-bezier(.2,.7,.2,1) both;}
+  .surprise-card.show{display:block;}
+  .surprise-label{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;opacity:.75;margin-bottom:8px;}
+  .surprise-dish{font-family:'Bricolage Grotesque';font-weight:800;font-size:26px;line-height:1.15;letter-spacing:-0.5px;}
+  .surprise-why{font-size:13.5px;opacity:.85;margin-top:8px;line-height:1.5;}
+  .dish.dimmed{opacity:.35;transition:opacity .3s;}
   @keyframes spin{to{transform:rotate(360deg);}}
   @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
   @keyframes fade{from{opacity:0;}to{opacity:1;}}
   @keyframes slideup{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  /* ---- settings modal ---- */
+  .modal-backdrop{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.5);align-items:flex-end;justify-content:center;}
+  .modal-backdrop.open{display:flex;}
+  .modal-sheet{background:var(--card);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:540px;animation:slideup .3s cubic-bezier(.2,.7,.2,1) both;}
+  .modal-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;margin-bottom:6px;}
+  .modal-desc{font-size:13px;color:var(--ink-faint);line-height:1.5;margin-bottom:20px;}
+  .key-label{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;margin-top:14px;}
+  .key-input{width:100%;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;
+    padding:13px 14px;font-size:14px;font-family:inherit;color:var(--ink);outline:none;transition:border-color .2s;}
+  .key-input:focus{border-color:var(--coral);}
+  .key-status{font-size:11.5px;margin-top:5px;min-height:16px;}
+  .key-status.ok{color:var(--green);}
+  .key-status.miss{color:var(--ink-faint);}
+  .modal-save{width:100%;margin-top:20px;padding:15px;border:none;
+    background:linear-gradient(140deg,var(--coral),var(--coral-deep));color:#fff;border-radius:14px;
+    font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+  .modal-save:active{opacity:.85;}
+  .modal-cancel{width:100%;margin-top:10px;padding:13px;border:1px solid var(--line);background:none;
+    color:var(--ink-soft);border-radius:14px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;}
   .hidden{display:none !important;}
 </style>
 </head>
@@ -202,7 +250,7 @@
   <div class="stage" id="home">
     <div class="hero">
       <h1>Eat the <em>best</em> dish,<br>wherever you are.</h1>
-      <p class="sub">Find the top-rated restaurants around you — then the 5 dishes people rave about at each one.</p>
+      <p class="sub">Find the top-rated restaurants around you — then exactly what to order, before you even sit down.</p>
     </div>
     <div style="margin-top:30px;">
 
@@ -316,6 +364,25 @@
     </button>
   </div>
 
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+    <div class="modal-sheet">
+      <div class="modal-title">⚙ Settings</div>
+      <div class="modal-desc">Your keys are saved only on this device and never shared. Get your Anthropic key at <b>console.anthropic.com</b> and your Google Places key at <b>console.cloud.google.com</b>.</div>
+      <div class="key-label">🔑 Anthropic API Key</div>
+      <input class="key-input" id="inputAnthropic" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+      <div class="key-status" id="statusAnthropic"></div>
+      <div class="key-label">🗺 Google Places API Key</div>
+      <input class="key-input" id="inputGoogle" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false">
+      <div class="key-status" id="statusGoogle"></div>
+      <div class="key-label">📍 Location Override <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-faint)">(optional — for desktop/testing)</span></div>
+      <input class="key-input" id="inputLocation" type="text" placeholder="e.g. Ashburn, Virginia" autocomplete="off" spellcheck="false">
+      <div class="key-status miss" id="statusLocation">Leave blank to use GPS on phone</div>
+      <button class="modal-save" onclick="saveSettings()">Save Keys</button>
+      <button class="modal-cancel" onclick="closeSettings()">Cancel</button>
+    </div>
+  </div>
+
   <footer>Fork&amp;Find · Menus &amp; prices change — confirm in person</footer>
 </div>
 
@@ -333,18 +400,124 @@ function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==
 const PROXY_URL = "https://top5dishes.tapanr.workers.dev";
 
 /* ---- API key management ---- */
-const KEY_NAME = 'ff_apikey';
-const OLD_KEY_NAMES = ['fnf_anthropic_key','anthropic_key','apikey'];
-function getApiKey(){
-  let k = localStorage.getItem(KEY_NAME) || '';
-  if(!k){ for(const n of OLD_KEY_NAMES){ const old=localStorage.getItem(n); if(old){ k=old; localStorage.setItem(KEY_NAME,old); break; } } }
-  return k.trim();
-}
-function saveApiKey(k){ localStorage.setItem(KEY_NAME, k.trim()); }
+function getAnthropicKey(){ return (localStorage.getItem('ff_apikey')||'').trim(); }
+function getGoogleKey(){ return (localStorage.getItem('ff_gplaces')||'').trim(); }
+
 function showSettings(){
-  const cur = getApiKey();
-  const k = prompt("Paste your Anthropic API key (sk-ant-...):", cur);
-  if(k !== null && k.trim()) { saveApiKey(k); alert("Key saved!"); }
+  $('inputAnthropic').value = getAnthropicKey();
+  $('inputGoogle').value = getGoogleKey();
+  $('inputLocation').value = getLocationOverride();
+  updateKeyStatus();
+  $('settingsModal').classList.add('open');
+}
+function closeSettings(){ $('settingsModal').classList.remove('open'); }
+function updateKeyStatus(){
+  const ak=getAnthropicKey(), gk=getGoogleKey();
+  $('statusAnthropic').textContent = ak ? '✓ Saved' : 'Not set';
+  $('statusAnthropic').className = 'key-status '+(ak?'ok':'miss');
+  $('statusGoogle').textContent = gk ? '✓ Saved — live restaurant search with open/closed status' : 'Not set — will use Claude estimate';
+  $('statusGoogle').className = 'key-status '+(gk?'ok':'miss');
+  const loc = getLocationOverride();
+  $('statusLocation').textContent = loc ? `✓ Using: ${loc}` : 'Leave blank to use GPS on phone';
+  $('statusLocation').className = 'key-status '+(loc?'ok':'miss');
+}
+function getLocationOverride(){ return (localStorage.getItem('ff_location')||'').trim(); }
+function saveSettings(){
+  const ak=$('inputAnthropic').value.trim();
+  const gk=$('inputGoogle').value.trim();
+  const loc=$('inputLocation').value.trim();
+  if(ak) localStorage.setItem('ff_apikey',ak);
+  if(gk) localStorage.setItem('ff_gplaces',gk);
+  localStorage.setItem('ff_location', loc);
+  closeSettings();
+}
+
+/* ── Google Places nearby search (Places API v1 / searchText) ── */
+function haversineMi(lat1,lon1,lat2,lon2){
+  const R=3958.8,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function fmtClose(periods,day){
+  if(!periods) return null;
+  const p=periods.find(x=>x.open&&x.open.day===day);
+  if(!p||!p.close) return 'Open 24h';
+  const t=p.close.time||''; if(!t) return null;
+  const h=parseInt(t.slice(0,2)),m=t.slice(2);
+  const h12=h>12?h-12:h===0?12:h;
+  return 'Closes '+h12+':'+m+(h>=12?'pm':'am');
+}
+
+async function placesSearchText(query,lat,lng,radius){
+  const gkey=getGoogleKey();
+  const resp=await fetch('https://places.googleapis.com/v1/places:searchText',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-Goog-Api-Key':gkey,
+      'X-Goog-FieldMask':'places.id,places.displayName,places.rating,places.userRatingCount,places.formattedAddress,places.internationalPhoneNumber,places.currentOpeningHours,places.regularOpeningHours,places.location,places.businessStatus,places.types,places.editorialSummary'
+    },
+    body:JSON.stringify({
+      textQuery:query,
+      maxResultCount:8,
+      locationBias:{circle:{center:{latitude:lat,longitude:lng},radius:radius}}
+    })
+  });
+  const d=await resp.json();
+  if(d.error) throw new Error(d.error.message);
+  return (d.places||[]).filter(p=>p.businessStatus!=='CLOSED_PERMANENTLY');
+}
+
+async function fetchNearbyRestaurants(lat,lng,cuisineFilter){
+  const gkey=getGoogleKey();
+  if(!gkey) return null;
+  const day=new Date().getDay();
+  const locName=await reverseGeocode(lat,lng);
+  const areaStr=locName?' near '+locName.split(',')[0]:'';
+  const query=(cuisineFilter?cuisineFilter+' restaurant':('restaurant'))+areaStr;
+
+  let places=await placesSearchText(query,lat,lng,2400);
+  // If thin results, broaden
+  if(places.length<3){
+    const p2=await placesSearchText('restaurant'+areaStr,lat,lng,3200);
+    const seen=new Set(places.map(p=>p.id));
+    p2.forEach(p=>{if(!seen.has(p.id))places.push(p);});
+  }
+  if(!places.length) return null;
+
+  const enriched=places.map(p=>{
+    const lat2=p.location?p.location.latitude:null;
+    const lng2=p.location?p.location.longitude:null;
+    const dist=(lat2&&lng2)?haversineMi(lat,lng,lat2,lng2):null;
+    const curH=p.currentOpeningHours,regH=p.regularOpeningHours;
+    const isOpen=curH?curH.openNow:(regH?regH.openNow:null);
+    const closes=fmtClose(curH?curH.periods:(regH?regH.periods:null),day);
+    const cuisine=(p.types||[])
+      .filter(t=>!['restaurant','food','point_of_interest','establishment'].includes(t))
+      .map(t=>t.replace(/_/g,' ')).slice(0,1).join('')||'';
+    return {
+      name:(p.displayName?p.displayName.text:'')||'Restaurant',
+      cuisine,
+      rating:p.rating?String(p.rating):'',
+      reviews:p.userRatingCount?p.userRatingCount.toLocaleString()+'+':'',
+      distance:dist!==null?'~'+dist.toFixed(1)+' mi':'',
+      blurb:(p.editorialSummary?p.editorialSummary.text:'')||'',
+      isOpen,closes
+    };
+  });
+
+  // Open first, then by distance
+  enriched.sort((a,b)=>{
+    const ao=a.isOpen===true?0:a.isOpen===false?2:1;
+    const bo=b.isOpen===true?0:b.isOpen===false?2:1;
+    if(ao!==bo) return ao-bo;
+    const ad=parseFloat((a.distance||'99').replace(/[^0-9.]/g,''))||99;
+    const bd=parseFloat((b.distance||'99').replace(/[^0-9.]/g,''))||99;
+    return ad-bd;
+  });
+
+  return enriched.slice(0,5);
 }
 
 /* ---------- loading copy ---------- */
@@ -425,7 +598,7 @@ Respond with ONLY raw JSON, no markdown:
 {"found":true,"name":"","cuisine":"","location":"area, city","blurb":"one sentence on why it's popular"}
 If uncertain, return your best guess with found:true — never return found:false unless coordinates are clearly in the middle of nowhere.`;
   try{
-    const r=await askClaude(p); stopSteps();
+    const r=await callClaude(p,800,false); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't detect a restaurant at your location. Try Option B to type a name.");
     // Pre-fill and go straight to dishes
     $('placeInput').value = r.name;
@@ -434,6 +607,7 @@ If uncertain, return your best guess with found:true — never return found:fals
 }
 
 let lastRestaurants=null;
+let lastLocLabel='';
 
 function useLocation(){
   show('loading'); $('loadMain').textContent='Finding you…'; runSteps();
@@ -448,14 +622,14 @@ function useLocation(){
 const dishCache = {};
 
 /* ---------- the Claude call ---------- */
-async function askClaude(promptText, maxTokens=2000, _retried=false){
+async function callClaude(promptText, maxTokens, useSearch, _retried=0){
   const payload = {
     model:"claude-haiku-4-5-20251001", max_tokens:maxTokens,
     messages:[{role:"user",content:promptText}],
-    tools:[{type:"web_search_20250305",name:"web_search",max_uses:3}]
+    ...(useSearch ? {tools:[{type:"web_search_20250305",name:"web_search",max_uses:2}]} : {})
   };
 
-  const apiKey = getApiKey();
+  const apiKey = getAnthropicKey();
   const url = apiKey ? "https://api.anthropic.com/v1/messages" : PROXY_URL;
   const headers = apiKey
     ? {"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}
@@ -465,15 +639,16 @@ async function askClaude(promptText, maxTokens=2000, _retried=false){
   try { res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)}); }
   catch(fetchErr){ const e=new Error("Failed to fetch"); e.name="TypeError"; throw e; }
   if(res.status===401||res.status===403) throw new Error("auth");
-  if(res.status===429 && !_retried){
+  if(res.status===429){
     const ra = parseInt(res.headers.get('retry-after')||'', 10);
-    const waitMs = (isFinite(ra) && ra>0 ? ra : 12) * 1000;
-    const prev = $('loadStep') ? $('loadStep').textContent : '';
-    if($('loadStep')) $('loadStep').textContent = "Search is busy — retrying in a moment…";
-    console.warn("[route] 429, retrying in", waitMs, "ms");
-    await new Promise(r=>setTimeout(r, waitMs));
-    if($('loadStep')) $('loadStep').textContent = prev;
-    return askClaude(promptText, maxTokens, true);
+    const waitMs = (isFinite(ra) && ra>0 ? ra : 15) * 1000;
+    const attempt = typeof _retried === 'number' ? _retried : 0;
+    if(attempt < 3){
+      if($('loadStep')) $('loadStep').textContent = `Rate limit — retrying in ${Math.round(waitMs/1000)}s… (${attempt+1}/3)`;
+      console.warn("[route] 429, attempt", attempt+1, "waiting", waitMs, "ms");
+      await new Promise(r=>setTimeout(r, waitMs));
+      return callClaude(promptText, maxTokens, useSearch, attempt+1);
+    }
   }
   if(!res.ok){ const body=await res.text().catch(()=>""); console.error("[Worker]",res.status,body); throw new Error("net:"+res.status); }
   const data=await res.json();
@@ -483,39 +658,100 @@ async function askClaude(promptText, maxTokens=2000, _retried=false){
   return JSON.parse(j);
 }
 
+/* ── reverse geocode — BigDataCloud first (handles CDPs/unincorporated areas), Nominatim fallback ── */
+async function reverseGeocode(lat, lng){
+  try{
+    const res=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
+    if(res.ok){
+      const d=await res.json();
+      const city=d.locality||d.localityInfo?.administrative?.find(a=>a.adminLevel>=8)?.name||d.city;
+      const state=d.principalSubdivision||'';
+      if(city&&city!==state) return `${city}, ${state}`.trim();
+    }
+  }catch(e){ console.warn('[geocode bigdatacloud]',e); }
+
+  try{
+    const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
+      {headers:{'Accept-Language':'en'}});
+    if(res.ok){
+      const d=await res.json();
+      const a=d.address||{};
+      const city=a.city||a.town||a.village||a.suburb||a.county;
+      const state=a.state;
+      if(city) return `${city}, ${state}`;
+    }
+  }catch(e){ console.warn('[geocode nominatim]',e); }
+
+  return null;
+}
+
+
+
 async function getRestaurants(lat,lng){
-  show('loading'); $('loadMain').textContent='Finding great spots near you…'; runSteps();
+  show('loading'); $('loadMain').textContent='Finding you…'; runSteps();
   const cuisineHint = selectedCuisine ? ` Only include restaurants serving any of these cuisines: ${selectedCuisine}. Mix them across the five if several are listed.` : '';
 
-  // Step 1: get restaurant list
-  const p=`You are a local food guide with live web access. The user is at GPS latitude ${lat}, longitude ${lng}.
-Use web search to identify the area/neighbourhood, then list FIVE popular restaurants near there.${cuisineHint}
-CRITICAL RULES — you MUST follow these:
-1. Always return exactly 5 restaurants. NEVER return found:false.
-2. If live data is incomplete, use your training knowledge of well-known spots in that area.
-3. Ratings/reviews/distance can be approximate or omitted ("") — never refuse just because data is imperfect.
-4. Be helpful and confident. The user just wants suggestions.
-Respond with ONLY raw JSON, no markdown, no explanation:
-{"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
+  // Step 0: reverse geocode for accurate location name
+  const locName = await reverseGeocode(lat, lng);
+  if(locName) $('loadMain').textContent = `Finding spots near ${locName}…`;
+
+  const cityName = locName ? locName.split(',').slice(-2).join(',').trim() : null;
+  lastLocLabel = cityName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  const locLabel = lastLocLabel;
+  const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
   let r;
   try{
-    r=await askClaude(p, 1200); stopSteps();
+    // Step 1a: try live Google Places (open/closed status, real distances, current data)
+    if(getGoogleKey()){
+      $('loadMain').textContent = `Searching open restaurants near ${locLabel}…`;
+      const places = await fetchNearbyRestaurants(lat, lng, selectedCuisine||'');
+      if(places && places.length){
+        stopSteps();
+        r = {found:true, area:locLabel, restaurants:places};
+        lastRestaurants=r; renderRestaurants(r);
+        // prefetch dishes and return
+        const area=locLabel;
+        async function prefetchPlaces(restaurants){
+          for(let i=0;i<restaurants.length;i++){
+            const x=restaurants[i]; if(dishCache[x.name]) continue;
+            await new Promise(res=>setTimeout(res, i===0?2000:6000));
+            try{ const dishes=await fetchDishesForRestaurant(x.name,area); if(dishes) dishCache[x.name]=dishes; }
+            catch(e){ console.warn('[prefetch]',x.name,e.message); }
+          }
+        }
+        prefetchPlaces((r.restaurants||[]).slice(0,5));
+        return;
+      }
+    }
+
+    // Step 1b: fall back to Claude if no Google key or Places returned nothing
+    $('loadMain').textContent = `Asking Claude about spots near ${locLabel}…`;
+    const p=`You are a local food expert. The user is in ${locLabel} (coordinates: ${coordStr}).
+List FIVE of the best, most popular restaurants in ${locLabel}.${cuisineHint ? ` Focus on: ${cuisineHint}.` : ''}
+Use your knowledge of ${locLabel} to give accurate, well-known local favourites.
+RULES: Return exactly 5. NEVER return found:false. Ratings/distance can be approximate.
+Respond with ONLY raw JSON, no markdown:
+{"found":true,"area":"${locLabel}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
+    r=await callClaude(p,1000,false); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
     lastRestaurants=r; renderRestaurants(r);
   }catch(e){ return handleErr(e); }
 
-  // Step 2: prefetch dishes for all 5 restaurants in background (parallel, best-effort)
-  $('loadMain').textContent='Loading dish menus in background…';
+  // Step 2: prefetch dishes sequentially with gap to avoid rate limits
   const area = r.area || '';
-  const prefetchAll = (r.restaurants||[]).slice(0,5).map(async (x) => {
-    if(dishCache[x.name]) return; // already cached
-    try {
-      const dishes = await fetchDishesForRestaurant(x.name, area);
-      if(dishes) dishCache[x.name] = dishes;
-    } catch(e){ console.warn('[prefetch]', x.name, e.message); }
-  });
-  // Fire and forget — don't block the UI
-  Promise.allSettled(prefetchAll);
+  async function prefetchSequential(restaurants){
+    for(let i=0; i<restaurants.length; i++){
+      const x = restaurants[i];
+      if(dishCache[x.name]) continue;
+      await new Promise(r=>setTimeout(r, i===0 ? 2000 : 6000));
+      try{
+        const dishes = await fetchDishesForRestaurant(x.name, area);
+        if(dishes) dishCache[x.name] = dishes;
+      }catch(e){ console.warn('[prefetch]', x.name, e.message); }
+    }
+  }
+  prefetchSequential((r.restaurants||[]).slice(0,5)); // fire and forget
 }
 
 async function fetchDishesForRestaurant(name, area){
@@ -528,26 +764,33 @@ CRITICAL RULES — you MUST follow these:
 3. Price can be approximate (~) or omitted ("") — never refuse just because data is imperfect.
 4. If the restaurant is well-known, you likely already know its signature dishes — use that knowledge.
 Respond with ONLY raw JSON, no markdown, no explanation:
-{"found":true,"restaurant":"exact name","location":"area","cuisine":"","confidence":"high|medium|low","dishes":[{"name":"","why":"one sentence","quote":"short review-style impression","price":"~$15"}]}`;
-  const r = await askClaude(p, 1200);
+{"found":true,"restaurant":"exact name","location":"area","cuisine":"","confidence":"high|medium|low","dishes":[{"name":"","why":"one sentence","quote":"short review-style impression","price":"~$15","spice":"mild|medium|hot|very hot","portion":"small|medium|large|sharing","diet":["veg","vegan","gf","halal","nopork","nobeef"],"mods":"common modifications people request","best_for":"e.g. sharing, solo, light lunch"}]}`;
+  const r = await callClaude(p, 1200, true);
   if(!r.found) return null;
   return r;
 }
 
 async function getDishes(opts){
+  console.log('[getDishes] called with', opts);
   // Check cache first — instant if prefetched
   if(opts.name && dishCache[opts.name]){
+    console.log('[getDishes] cache hit for', opts.name);
     renderDishes(dishCache[opts.name]);
     return;
   }
-  show('loading'); $('loadMain').textContent = opts.name?`Looking up ${opts.name}…`:'Loading dishes…'; runSteps();
+  show('loading');
+  $('loadMain').textContent = opts.name ? `Looking up ${opts.name}…` : 'Loading dishes…';
+  runSteps();
   try{
     const r = await fetchDishesForRestaurant(opts.name || '', opts.area || '');
     stopSteps();
     if(!r) return fail("Couldn't pin down that restaurant. Try its full name.");
     if(opts.name) dishCache[opts.name] = r;
     renderDishes(r);
-  }catch(e){ handleErr(e); }
+  }catch(e){
+    console.error('[getDishes] error:', e);
+    handleErr(e);
+  }
 }
 
 function handleErr(e){
@@ -557,16 +800,19 @@ function handleErr(e){
   } else if(e.message==="net:429"){
     fail("Rate limit reached on your Anthropic account (tokens-per-minute cap). Wait ~30s and retry — this limit rises automatically as your account usage tier increases.");
   } else {
-    const hint = (e.message==="net"||e.message==="Failed to fetch"||e.name==="TypeError")
-      ? "Network/CORS error. Make sure your Worker's ALLOWED_ORIGIN matches: "+location.origin
-      : (e.message||String(e));
-    fail("Something went wrong: " + hint + "\n\nOpen the browser console (F12) for details.");
+    let hint = e.message||String(e);
+    if(e.name==="TypeError"||e.message==="Failed to fetch"){
+      hint = getAnthropicKey()
+        ? "Network error calling Anthropic directly. This may be a CORS issue — try using the Cloudflare Worker instead, or check your API key."
+        : "No API key set. Tap ⚙ to add your Anthropic key.";
+    }
+    fail("Something went wrong: " + hint + " (check browser console for details)");
   }
 }
 
 /* ---------- render ---------- */
 function renderRestaurants(r){
-  $('rArea').textContent = r.area || 'Restaurants nearby';
+  $('rArea').textContent = lastLocLabel || r.area || 'Restaurants nearby';
   const list=$('rList'); list.innerHTML='';
   (r.restaurants||[]).slice(0,5).forEach((x,i)=>{
     const el=document.createElement('div');
@@ -599,25 +845,84 @@ function renderRestaurants(r){
   }, 800);
 }
 
+let currentDishes = [];
+let activeDiet = '';
+
 function renderDishes(r){
   $('dPlace').textContent=r.restaurant||'This restaurant';
   $('dMeta').textContent=[r.cuisine,r.location].filter(Boolean).join(' · ');
-  const list=$('dList'); list.innerHTML='';
-  (r.dishes||[]).slice(0,5).forEach((d,i)=>{
-    const el=document.createElement('div');
-    el.className='dish'; el.style.animationDelay=(i*0.07)+'s';
-    el.innerHTML=`<div class="drank">${i+1}</div>
-      <div class="dbody">
-        <div class="dtop"><div class="dname">${esc(d.name||'')}</div>${d.price?`<div class="dprice">${esc(d.price)}</div>`:''}</div>
-        ${d.why?`<div class="dwhy">${esc(d.why)}</div>`:''}
-        ${d.quote?`<div class="dquote">"${esc(d.quote)}"</div>`:''}
-      </div>`;
-    list.appendChild(el);
-  });
+  currentDishes = r.dishes||[];
   $('dDisclaimer').textContent = (r.confidence==='low')
     ? '⚠ Low confidence on the exact restaurant — double-check this is the right place.'
     : 'Based on recent online reviews — confirm the menu in person.';
+  // reset dietary filter
+  activeDiet='';
+  document.querySelectorAll('#dietRow .dchip').forEach(c=>c.classList.toggle('sel',c.dataset.diet===''));
+  $('surpriseCard').classList.remove('show');
+  renderDishList();
   show('dishes');
+}
+
+function renderDishList(){
+  const list=$('dList'); list.innerHTML='';
+  const filtered = activeDiet
+    ? currentDishes.filter(d=>(d.diet||[]).includes(activeDiet))
+    : currentDishes;
+  if(!filtered.length){
+    list.innerHTML=`<div style="padding:24px 0;text-align:center;color:var(--ink-faint);font-size:14px;">No dishes match this filter — try another.</div>`;
+    return;
+  }
+  filtered.slice(0,5).forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='dish'; el.style.animationDelay=(i*0.07)+'s';
+    const tags=[];
+    if(d.spice && d.spice!=='mild') tags.push(d.spice==='very hot'?'🌶🌶 Very hot':d.spice==='hot'?'🌶 Hot':'🌶 Medium');
+    if(d.portion==='large'||d.portion==='sharing') tags.push(d.portion==='sharing'?'👥 Great for sharing':'🍽 Large portion');
+    const tagHtml = tags.length ? `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">${tags.map(t=>`<span style="font-size:11px;background:var(--bg-tint);border:1px solid var(--line);border-radius:20px;padding:2px 8px;color:var(--ink-soft);">${t}</span>`).join('')}</div>` : '';
+    el.innerHTML=`<div class="drank">${i+1}</div>
+      <div class="dbody" style="flex:1;min-width:0;">
+        <div class="dtop"><div class="dname">${esc(d.name||'')}</div>${d.price?`<div class="dprice">${esc(d.price)}</div>`:''}</div>
+        ${d.why?`<div class="dwhy">${esc(d.why)}</div>`:''}
+        ${tagHtml}
+        ${d.quote||d.mods||d.best_for?`<div class="ddetail">
+          ${d.quote?`<div style="font-style:italic;margin-bottom:${d.mods||d.best_for?'8px':'0'}">"${esc(d.quote)}"</div>`:''}
+          ${d.best_for?`<div><b>Best for:</b> ${esc(d.best_for)}</div>`:''}
+          ${d.mods?`<div style="margin-top:4px"><b>People often ask for:</b> ${esc(d.mods)}</div>`:''}
+        </div>`:''}
+      </div>
+      ${d.quote||d.mods||d.best_for?`<div class="dexpand">▾</div>`:''}`;
+    // expand/collapse on tap
+    el.addEventListener('click',()=>{
+      el.classList.toggle('open');
+    });
+    list.appendChild(el);
+  });
+}
+
+// Dietary filter
+document.querySelectorAll('#dietRow .dchip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    activeDiet = chip.dataset.diet;
+    document.querySelectorAll('#dietRow .dchip').forEach(c=>c.classList.toggle('sel',c===chip));
+    $('surpriseCard').classList.remove('show');
+    renderDishList();
+  });
+});
+
+// Surprise me
+function surpriseMe(){
+  const list = $('dList').querySelectorAll('.dish');
+  if(!list.length) return;
+  const items = Array.from(list);
+  const pick = items[Math.floor(Math.random()*items.length)];
+  const idx = Array.from(list).indexOf(pick);
+  const dish = (activeDiet ? currentDishes.filter(d=>(d.diet||[]).includes(activeDiet)) : currentDishes)[idx];
+  if(!dish) return;
+  items.forEach((el,i)=>el.classList.toggle('dimmed',i!==idx));
+  $('surpriseDish').textContent = dish.name||'';
+  $('surpriseWhy').textContent = dish.why||dish.quote||'';
+  $('surpriseCard').classList.add('show');
+  $('surpriseCard').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 </script>
