@@ -602,9 +602,11 @@ async function reverseGeocode(lat, lng){
     const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
     if(res.ok){
       const d = await res.json();
-      const city = d.locality || d.city || d.principalSubdivisionCode;
+      console.log('[geocode]', d);
+      // Prefer locality (CDP/neighborhood name) over city
+      const city = d.locality || d.localityInfo?.administrative?.find(a=>a.adminLevel>=8)?.name || d.city;
       const state = d.principalSubdivision || '';
-      if(city) return `${city}, ${state}`.trim().replace(/,\s*$/, '');
+      if(city && city !== state) return `${city}, ${state}`.trim();
     }
   }catch(e){ console.warn('[geocode bigdatacloud]', e); }
 
@@ -687,19 +689,26 @@ Respond with ONLY raw JSON, no markdown, no explanation:
 }
 
 async function getDishes(opts){
+  console.log('[getDishes] called with', opts);
   // Check cache first — instant if prefetched
   if(opts.name && dishCache[opts.name]){
+    console.log('[getDishes] cache hit for', opts.name);
     renderDishes(dishCache[opts.name]);
     return;
   }
-  show('loading'); $('loadMain').textContent = opts.name?`Looking up ${opts.name}…`:'Loading dishes…'; runSteps();
+  show('loading');
+  $('loadMain').textContent = opts.name ? `Looking up ${opts.name}…` : 'Loading dishes…';
+  runSteps();
   try{
     const r = await fetchDishesForRestaurant(opts.name || '', opts.area || '');
     stopSteps();
     if(!r) return fail("Couldn't pin down that restaurant. Try its full name.");
     if(opts.name) dishCache[opts.name] = r;
     renderDishes(r);
-  }catch(e){ handleErr(e); }
+  }catch(e){
+    console.error('[getDishes] error:', e);
+    handleErr(e);
+  }
 }
 
 function handleErr(e){
@@ -709,10 +718,13 @@ function handleErr(e){
   } else if(e.message==="net:429"){
     fail("Rate limit reached on your Anthropic account (tokens-per-minute cap). Wait ~30s and retry — this limit rises automatically as your account usage tier increases.");
   } else {
-    const hint = (e.message==="net"||e.message==="Failed to fetch"||e.name==="TypeError")
-      ? "Network/CORS error. Make sure your Worker's ALLOWED_ORIGIN matches: "+location.origin
-      : (e.message||String(e));
-    fail("Something went wrong: " + hint + "\n\nOpen the browser console (F12) for details.");
+    let hint = e.message||String(e);
+    if(e.name==="TypeError"||e.message==="Failed to fetch"){
+      hint = getAnthropicKey()
+        ? "Network error calling Anthropic directly. This may be a CORS issue — try using the Cloudflare Worker instead, or check your API key."
+        : "No API key set. Tap ⚙ to add your Anthropic key.";
+    }
+    fail("Something went wrong: " + hint + " (check browser console for details)");
   }
 }
 
