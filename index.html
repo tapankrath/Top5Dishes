@@ -539,18 +539,17 @@ async function getRestaurants(lat,lng){
   if(locName) $('loadMain').textContent = `Finding spots near ${locName}…`;
 
   // Step 1: get restaurant list
-  const locHint = locName
-    ? `The user is in ${locName} (GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)}).`
-    : `The user is at GPS latitude ${lat}, longitude ${lng}.`;
-  const p=`You are a local food guide with live web access. ${locHint}
-Use web search to find FIVE highly-rated, popular restaurants near this exact location.${cuisineHint}
-CRITICAL RULES — you MUST follow these:
-1. Always return exactly 5 restaurants. NEVER return found:false.
-2. Use the provided location name — do NOT guess or substitute a different city.
-3. Ratings/reviews/distance can be approximate or omitted ("") — never refuse just because data is imperfect.
-4. Be helpful and confident. The user just wants suggestions.
-Respond with ONLY raw JSON, no markdown, no explanation:
-{"found":true,"area":"${locName||'nearby'}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
+  const locLabel = locName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  const locHint = `The user is physically located in ${locLabel}. GPS coordinates confirm: ${lat.toFixed(5)}, ${lng.toFixed(5)}.`;
+  const p=`You are a local food guide. ${locHint}
+Search for restaurants specifically in ${locLabel} — this is the ONLY acceptable location. Do NOT suggest restaurants from neighbouring cities, nearby metros, or anywhere else.${cuisineHint}
+Search query to use: "best restaurants in ${locLabel}"
+RULES:
+1. Return exactly 5 restaurants physically located in or immediately adjacent to ${locLabel}. NEVER return found:false.
+2. The "area" field in your response MUST be "${locLabel}" — do not change it.
+3. Ratings/reviews/distance can be approximate — never refuse due to missing data.
+Respond with ONLY raw JSON, no markdown:
+{"found":true,"area":"${locLabel}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
   let r;
   try{
     r=await askClaude(p, 1200); stopSteps();
