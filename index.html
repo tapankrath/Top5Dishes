@@ -210,6 +210,25 @@
   @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
   @keyframes fade{from{opacity:0;}to{opacity:1;}}
   @keyframes slideup{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  /* ---- settings modal ---- */
+  .modal-backdrop{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.5);align-items:flex-end;justify-content:center;}
+  .modal-backdrop.open{display:flex;}
+  .modal-sheet{background:var(--card);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:540px;animation:slideup .3s cubic-bezier(.2,.7,.2,1) both;}
+  .modal-title{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;margin-bottom:6px;}
+  .modal-desc{font-size:13px;color:var(--ink-faint);line-height:1.5;margin-bottom:20px;}
+  .key-label{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;margin-top:14px;}
+  .key-input{width:100%;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;
+    padding:13px 14px;font-size:14px;font-family:inherit;color:var(--ink);outline:none;transition:border-color .2s;}
+  .key-input:focus{border-color:var(--coral);}
+  .key-status{font-size:11.5px;margin-top:5px;min-height:16px;}
+  .key-status.ok{color:var(--green);}
+  .key-status.miss{color:var(--ink-faint);}
+  .modal-save{width:100%;margin-top:20px;padding:15px;border:none;
+    background:linear-gradient(140deg,var(--coral),var(--coral-deep));color:#fff;border-radius:14px;
+    font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+  .modal-save:active{opacity:.85;}
+  .modal-cancel{width:100%;margin-top:10px;padding:13px;border:1px solid var(--line);background:none;
+    color:var(--ink-soft);border-radius:14px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;}
   .hidden{display:none !important;}
 </style>
 </head>
@@ -345,6 +364,22 @@
     </button>
   </div>
 
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+    <div class="modal-sheet">
+      <div class="modal-title">⚙ Settings</div>
+      <div class="modal-desc">Your keys are saved only on this device and never shared. Get your Anthropic key at <b>console.anthropic.com</b> and your Google Places key at <b>console.cloud.google.com</b>.</div>
+      <div class="key-label">🔑 Anthropic API Key</div>
+      <input class="key-input" id="inputAnthropic" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+      <div class="key-status" id="statusAnthropic"></div>
+      <div class="key-label">🗺 Google Places API Key</div>
+      <input class="key-input" id="inputGoogle" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false">
+      <div class="key-status" id="statusGoogle"></div>
+      <button class="modal-save" onclick="saveSettings()">Save Keys</button>
+      <button class="modal-cancel" onclick="closeSettings()">Cancel</button>
+    </div>
+  </div>
+
   <footer>Fork&amp;Find · Menus &amp; prices change — confirm in person</footer>
 </div>
 
@@ -362,18 +397,64 @@ function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==
 const PROXY_URL = "https://top5dishes.tapanr.workers.dev";
 
 /* ---- API key management ---- */
-const KEY_NAME = 'ff_apikey';
-const OLD_KEY_NAMES = ['fnf_anthropic_key','anthropic_key','apikey'];
-function getApiKey(){
-  let k = localStorage.getItem(KEY_NAME) || '';
-  if(!k){ for(const n of OLD_KEY_NAMES){ const old=localStorage.getItem(n); if(old){ k=old; localStorage.setItem(KEY_NAME,old); break; } } }
-  return k.trim();
-}
-function saveApiKey(k){ localStorage.setItem(KEY_NAME, k.trim()); }
+function getAnthropicKey(){ return (localStorage.getItem('ff_apikey')||'').trim(); }
+function getGoogleKey(){ return (localStorage.getItem('ff_gplaces')||'').trim(); }
+
 function showSettings(){
-  const cur = getApiKey();
-  const k = prompt("Paste your Anthropic API key (sk-ant-...):", cur);
-  if(k !== null && k.trim()) { saveApiKey(k); alert("Key saved!"); }
+  $('inputAnthropic').value = getAnthropicKey();
+  $('inputGoogle').value = getGoogleKey();
+  updateKeyStatus();
+  $('settingsModal').classList.add('open');
+}
+function closeSettings(){ $('settingsModal').classList.remove('open'); }
+function updateKeyStatus(){
+  const ak=getAnthropicKey(), gk=getGoogleKey();
+  $('statusAnthropic').textContent = ak ? '✓ Saved' : 'Not set';
+  $('statusAnthropic').className = 'key-status '+(ak?'ok':'miss');
+  $('statusGoogle').textContent = gk ? '✓ Saved — accurate GPS search enabled' : 'Not set — will use AI estimate';
+  $('statusGoogle').className = 'key-status '+(gk?'ok':'miss');
+}
+function saveSettings(){
+  const ak=$('inputAnthropic').value.trim(), gk=$('inputGoogle').value.trim();
+  if(ak) localStorage.setItem('ff_apikey',ak);
+  if(gk) localStorage.setItem('ff_gplaces',gk);
+  closeSettings();
+}
+
+/* ── Google Places nearby search ── */
+async function fetchNearbyRestaurants(lat,lng,cuisineFilter){
+  const gkey=getGoogleKey();
+  if(!gkey) return null;
+  const body={includedTypes:["restaurant"],maxResultCount:10,
+    locationRestriction:{circle:{center:{latitude:lat,longitude:lng},radiusMeters:2000}},
+    rankPreference:"POPULARITY"};
+  const res=await fetch("https://places.googleapis.com/v1/places:searchNearby",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","X-Goog-Api-Key":gkey,
+      "X-Goog-FieldMask":"places.displayName,places.rating,places.userRatingCount,places.types,places.editorialSummary,places.location"},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok){console.warn("[Places]",res.status,await res.text());return null;}
+  const data=await res.json();
+  let places=data.places||[];
+  if(cuisineFilter){
+    const q=cuisineFilter.toLowerCase();
+    const f=places.filter(p=>(p.editorialSummary?.text||'').toLowerCase().includes(q)||(p.displayName?.text||'').toLowerCase().includes(q));
+    if(f.length>=3) places=f;
+  }
+  function dist(p){
+    const R=3958.8,dLat=(p.location.latitude-lat)*Math.PI/180,dLon=(p.location.longitude-lng)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2+Math.cos(lat*Math.PI/180)*Math.cos(p.location.latitude*Math.PI/180)*Math.sin(dLon/2)**2;
+    return(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))).toFixed(1);
+  }
+  return places.slice(0,5).map(p=>({
+    name:p.displayName?.text||'',
+    cuisine:(p.types||[]).filter(t=>!['restaurant','food','point_of_interest','establishment'].includes(t)).map(t=>t.replace(/_/g,' ')).slice(0,1).join('')||'',
+    rating:p.rating?String(p.rating):'',
+    reviews:p.userRatingCount?p.userRatingCount.toLocaleString()+'+':'',
+    distance:`~${dist(p)} mi`,
+    blurb:p.editorialSummary?.text||''
+  }));
 }
 
 /* ---------- loading copy ---------- */
@@ -454,7 +535,7 @@ Respond with ONLY raw JSON, no markdown:
 {"found":true,"name":"","cuisine":"","location":"area, city","blurb":"one sentence on why it's popular"}
 If uncertain, return your best guess with found:true — never return found:false unless coordinates are clearly in the middle of nowhere.`;
   try{
-    const r=await askClaude(p); stopSteps();
+    const r=await callClaude(p,800,false); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't detect a restaurant at your location. Try Option B to type a name.");
     // Pre-fill and go straight to dishes
     $('placeInput').value = r.name;
@@ -478,14 +559,14 @@ function useLocation(){
 const dishCache = {};
 
 /* ---------- the Claude call ---------- */
-async function askClaude(promptText, maxTokens=2000, _retried=0){
+async function callAPI(promptText, maxTokens, useSearch, _retried=0){
   const payload = {
     model:"claude-haiku-4-5-20251001", max_tokens:maxTokens,
     messages:[{role:"user",content:promptText}],
-    tools:[{type:"web_search_20250305",name:"web_search",max_uses:3}]
+    ...(useSearch ? {tools:[{type:"web_search_20250305",name:"web_search",max_uses:2}]} : {})
   };
 
-  const apiKey = getApiKey();
+  const apiKey = getAnthropicKey();
   const url = apiKey ? "https://api.anthropic.com/v1/messages" : PROXY_URL;
   const headers = apiKey
     ? {"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}
@@ -503,7 +584,7 @@ async function askClaude(promptText, maxTokens=2000, _retried=0){
       if($('loadStep')) $('loadStep').textContent = `Rate limit — retrying in ${Math.round(waitMs/1000)}s… (${attempt+1}/3)`;
       console.warn("[route] 429, attempt", attempt+1, "waiting", waitMs, "ms");
       await new Promise(r=>setTimeout(r, waitMs));
-      return askClaude(promptText, maxTokens, attempt+1);
+      return callAPI(promptText, maxTokens, useSearch, attempt+1);
     }
   }
   if(!res.ok){ const body=await res.text().catch(()=>""); console.error("[Worker]",res.status,body); throw new Error("net:"+res.status); }
@@ -543,6 +624,9 @@ async function reverseGeocode(lat, lng){
   return null;
 }
 
+function askClaude(promptText, maxTokens=2000){ return callAPI(promptText, maxTokens, true); }
+
+
 async function getRestaurants(lat,lng){
   show('loading'); $('loadMain').textContent='Finding you…'; runSteps();
   const cuisineHint = selectedCuisine ? ` Only include restaurants serving any of these cuisines: ${selectedCuisine}. Mix them across the five if several are listed.` : '';
@@ -558,26 +642,15 @@ async function getRestaurants(lat,lng){
   const locLabel = lastLocLabel;
   const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
-  const p=`You are a local food guide with web search access.
-The user's GPS coordinates are: ${coordStr}
-Verified location: ${locLabel}
-
-YOUR TASK: Search the web RIGHT NOW for highly-rated restaurants near coordinates ${coordStr} (${locLabel}).
-- Use search query: restaurants near ${coordStr}
-- OR: best restaurants in ${locLabel} ${new Date().getFullYear()}
-${cuisineHint ? `- Filter for: ${cuisineHint}` : ''}
-
-STRICT RULES:
-1. ONLY include restaurants that actually exist near ${coordStr}. Do NOT invent or hallucinate restaurants.
-2. Do NOT use restaurants from your training memory — only use what web search returns right now.
-3. Return exactly 5. NEVER return found:false.
-4. The "area" field MUST reflect the actual location near ${coordStr}.
-
+  const p=`You are a local food expert. The user is in ${locLabel} (coordinates: ${coordStr}).
+List FIVE of the best, most popular restaurants in ${locLabel}.${cuisineHint ? ` Focus on: ${cuisineHint}.` : ''}
+Use your knowledge of ${locLabel} to give accurate, well-known local favourites.
+RULES: Return exactly 5. NEVER return found:false. Ratings/distance can be approximate.
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"${locLabel}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
   let r;
   try{
-    r=await askClaude(p, 1200); stopSteps();
+    r=await callClaude(p,1000,false); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
     lastRestaurants=r; renderRestaurants(r);
   }catch(e){ return handleErr(e); }
@@ -609,7 +682,7 @@ CRITICAL RULES — you MUST follow these:
 4. If the restaurant is well-known, you likely already know its signature dishes — use that knowledge.
 Respond with ONLY raw JSON, no markdown, no explanation:
 {"found":true,"restaurant":"exact name","location":"area","cuisine":"","confidence":"high|medium|low","dishes":[{"name":"","why":"one sentence","quote":"short review-style impression","price":"~$15","spice":"mild|medium|hot|very hot","portion":"small|medium|large|sharing","diet":["veg","vegan","gf","halal","nopork","nobeef"],"mods":"common modifications people request","best_for":"e.g. sharing, solo, light lunch"}]}`;
-  const r = await askClaude(p, 1200);
+  const r = await callClaude(p, 1200, true);
   if(!r.found) return null;
   return r;
 }
