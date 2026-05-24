@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <rect width="180" height="180" rx="40" fill="#ff4d3d"/>
+  <!-- Fork: three tines -->
+  <line x1="62" y1="32" x2="62" y2="82" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+  <line x1="76" y1="32" x2="76" y2="82" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+  <line x1="90" y1="32" x2="90" y2="82" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+  <!-- Fork: curved base -->
+  <path d="M57 82 Q57 102 76 102" stroke="#fff" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <!-- Fork: handle -->
+  <line x1="76" y1="102" x2="76" y2="148" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+  <!-- Magnifier: circle -->
+  <circle cx="120" cy="72" r="26" stroke="#fff" stroke-width="10" fill="none"/>
+  <!-- Magnifier: handle -->
+  <line x1="138" y1="90" x2="156" y2="110" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+</svg>
