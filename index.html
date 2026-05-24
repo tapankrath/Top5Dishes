@@ -333,12 +333,21 @@ function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==
 const PROXY_URL = "https://top5dishes.tapanr.workers.dev";
 
 /* ---- API key management ---- */
-function getApiKey(){ return localStorage.getItem('ff_apikey') || ''; }
-function saveApiKey(k){ localStorage.setItem('ff_apikey', k.trim()); }
+const KEY_NAME = 'ff_apikey';
+const OLD_KEY_NAMES = ['fnf_anthropic_key','anthropic_key','apikey'];
+function getApiKey(){
+  let k = localStorage.getItem(KEY_NAME) || '';
+  if(!k){ // migrate from any older saved name
+    for(const n of OLD_KEY_NAMES){ const old = localStorage.getItem(n); if(old){ k=old; localStorage.setItem(KEY_NAME, old); break; } }
+  }
+  return k.trim();
+}
+function saveApiKey(k){ localStorage.setItem(KEY_NAME, k.trim()); }
 function showSettings(){
   const cur = getApiKey();
-  const k = prompt("Paste your Anthropic API key (sk-ant-...):", cur);
-  if(k !== null && k.trim()) { saveApiKey(k); alert("Key saved!"); }
+  const masked = cur ? cur.slice(0,8)+'…'+cur.slice(-4) : '(none saved)';
+  const k = prompt("Anthropic API key (sk-ant-...).\nCurrently saved: "+masked+"\n\nPaste a key to save it, or leave as-is:", cur);
+  if(k !== null && k.trim()) { saveApiKey(k); alert("Key saved. The app will now call Anthropic directly (not Cloudflare)."); }
 }
 
 /* ---------- loading copy ---------- */
@@ -427,11 +436,11 @@ function useLocation(){
 const dishCache = {};
 
 /* ---------- the Claude call ---------- */
-async function askClaude(promptText, maxTokens=2000){
+async function askClaude(promptText, maxTokens=2000, _retried=false){
   const payload = {
     model:"claude-haiku-4-5-20251001", max_tokens:maxTokens,
     messages:[{role:"user",content:promptText}],
-    tools:[{type:"web_search_20250305",name:"web_search"}]
+    tools:[{type:"web_search_20250305",name:"web_search",max_uses:3}]
   };
 
   const apiKey = getApiKey();
@@ -439,11 +448,23 @@ async function askClaude(promptText, maxTokens=2000){
   const headers = apiKey
     ? {"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}
     : {"Content-Type":"application/json"};
+  console.log("[route]", apiKey ? "DIRECT to Anthropic (key found)" : "Cloudflare proxy (NO key found)");
 
   let res;
   try { res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)}); }
   catch(fetchErr){ const e=new Error("Failed to fetch"); e.name="TypeError"; throw e; }
   if(res.status===401||res.status===403) throw new Error("auth");
+  if(res.status===429 && !_retried){
+    // Rate limited — wait and retry once, silently. Honour Retry-After if given.
+    const ra = parseInt(res.headers.get('retry-after')||'', 10);
+    const waitMs = (isFinite(ra) && ra>0 ? ra : 12) * 1000;
+    const prev = $('loadStep') ? $('loadStep').textContent : '';
+    if($('loadStep')) $('loadStep').textContent = "Search is busy — retrying in a moment…";
+    console.warn("[route] 429, retrying in", waitMs, "ms");
+    await new Promise(r=>setTimeout(r, waitMs));
+    if($('loadStep')) $('loadStep').textContent = prev;
+    return askClaude(promptText, maxTokens, true);
+  }
   if(!res.ok){ const body=await res.text().catch(()=>""); console.error("[Worker]",res.status,body); throw new Error("net:"+res.status); }
   const data=await res.json();
   const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
@@ -524,7 +545,7 @@ function handleErr(e){
   if(e.message==="auth"){
     fail("API key rejected — check the ANTHROPIC_API_KEY secret in your Cloudflare Worker, or tap ⚙ to update it.");
   } else if(e.message==="net:429"){
-    fail("Too many requests right now — the search limit was hit. Please wait 30 seconds and try again.");
+    fail("Rate limit reached on your Anthropic account (30k tokens/min — same whether direct or via Cloudflare). Wait ~30s and retry. This limit rises automatically as your account usage tier increases.");
   } else {
     const hint = (e.message==="net"||e.message==="Failed to fetch"||e.name==="TypeError")
       ? "Network/CORS error. Make sure your Worker's ALLOWED_ORIGIN matches: "+location.origin
