@@ -130,14 +130,14 @@
   .sopt-input-wrap button:active{background:var(--bg-tint);}
   .sopt-input-wrap button svg{width:18px;height:18px;stroke:var(--coral);}
   /* ---- cuisine filter row ---- */
-  .cuisine-row{margin-top:14px;animation:rise .6s .22s cubic-bezier(.2,.7,.2,1) both;}
-  .cuisine-chips{display:flex;gap:7px;flex-wrap:wrap;}
+  .cuisine-row{margin-top:12px;animation:rise .6s .22s cubic-bezier(.2,.7,.2,1) both;}
+  .cuisine-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .cuisine-chips::-webkit-scrollbar{display:none;}
   .chip{background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);border-radius:20px;
-    padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;box-shadow:var(--shadow-sm);
-    display:inline-flex;align-items:center;gap:5px;}
+    padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;
+    flex-shrink:0;display:inline-flex;align-items:center;gap:4px;}
   .chip:active{transform:scale(.95);}
   .chip.sel{background:var(--coral-tint);border-color:var(--coral);color:var(--coral-deep);}
-  .chip.sel::before{content:'✓';font-size:11px;}
   .hint{text-align:center;color:var(--ink-faint);font-size:12.5px;margin-top:16px;}
   /* ---- loading / error ---- */
   .status{text-align:center;padding:30px 16px;color:var(--ink-soft);font-size:15px;animation:fade .4s both;}
@@ -572,11 +572,14 @@ async function askClaude(promptText){
                 headers["anthropic-dangerous-direct-browser-access"]="true"; }
   }
 
-  const res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)});
+  let res;
+  try { res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)}); }
+  catch(fetchErr){ const e=new Error("Failed to fetch"); e.name="TypeError"; throw e; }
   if(res.status===401||res.status===403) throw new Error("auth");
-  if(!res.ok) throw new Error("net");
+  if(!res.ok){ const body=await res.text().catch(()=>""); console.error("[Worker]",res.status,body); throw new Error("net:"+res.status); }
   const data=await res.json();
   const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  if(!text){ console.error("[Worker] no text block in response", data); throw new SyntaxError("empty response"); }
   const j=text.replace(/```json|```/g,"").trim().replace(/^[^{[]*/,"").replace(/[^}\]]*$/,"");
   return JSON.parse(j);
 }
@@ -612,9 +615,19 @@ Give exactly 5, best first. If you can't identify it return {"found":false,"reas
 }
 
 function handleErr(e){
-  if(e.message==="auth"){ fail("The API key was rejected. If you're using the proxy, check the ANTHROPIC_API_KEY secret in Cloudflare; otherwise tap the gear ⚙."); }
-  else if(!PROXY_URL && !apiKey && !RUNNING_IN_CLAUDE){ fail("This site needs a backend proxy (or a key) to search. See the README setup steps."); }
-  else{ fail("Couldn't reach the search service. If you just deployed the Worker, give it a minute, then check its URL matches PROXY_URL."); }
+  console.error('[Fork&Find]', e);
+  if(e.message==="auth"){
+    fail("API key rejected — check the ANTHROPIC_API_KEY secret in your Cloudflare Worker, or tap ⚙ to update it.");
+  } else if(!PROXY_URL && !apiKey && !RUNNING_IN_CLAUDE){
+    fail("No API key or proxy set. Tap ⚙ to add your Anthropic key.");
+  } else if(e instanceof SyntaxError){
+    fail("Got a response but couldn't parse it. Open the browser console (F12) to see the raw reply from the Worker.");
+  } else {
+    const hint = (e.message==="net"||e.message==="Failed to fetch"||e.name==="TypeError")
+      ? "Network/CORS error. Make sure your Worker's ALLOWED_ORIGIN matches: "+location.origin
+      : (e.message||String(e));
+    fail("Something went wrong: " + hint + "\n\nOpen the browser console (F12) for details.");
+  }
 }
 
 /* ---------- render ---------- */
