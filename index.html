@@ -195,7 +195,7 @@
       </div>
       <div class="brand-text">Fork<b>&amp;</b>Find<span class="tag">Eat the best, everywhere</span></div>
     </div>
-
+    <button onclick="showSettings()" style="background:none;border:1px solid var(--line);border-radius:10px;padding:7px 10px;cursor:pointer;font-size:16px;color:var(--ink-faint);" title="Set API key">⚙</button>
   </div>
 
   <!-- HOME -->
@@ -332,6 +332,16 @@ function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==
    ======================================================== */
 const PROXY_URL = "https://top5dishes.tapanr.workers.dev";
 
+/* ---- API key management ---- */
+function getApiKey(){ return localStorage.getItem('ff_apikey') || ''; }
+function saveApiKey(k){ localStorage.setItem('ff_apikey', k.trim()); }
+function showSettings(){
+  const cur = getApiKey();
+  const k = prompt("Paste your Anthropic API key (starts with sk-ant-):
+It's saved only on this device.", cur);
+  if(k !== null && k.trim()) { saveApiKey(k); alert("✅ Key saved! You can now use the app without the worker."); }
+}
+
 /* ---------- loading copy ---------- */
 const loadingLines=["Scanning recent reviews…","Checking ratings & favourites…","Ranking the best spots…","Almost there…"];
 let stepTimer;
@@ -425,8 +435,11 @@ async function askClaude(promptText, maxTokens=2000){
     tools:[{type:"web_search_20250305",name:"web_search"}]
   };
 
-  const url = PROXY_URL || "https://api.anthropic.com/v1/messages";
-  const headers = {"Content-Type":"application/json"};
+  const apiKey = getApiKey();
+  const url = apiKey ? "https://api.anthropic.com/v1/messages" : PROXY_URL;
+  const headers = apiKey
+    ? {"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}
+    : {"Content-Type":"application/json"};
 
   let res;
   try { res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)}); }
