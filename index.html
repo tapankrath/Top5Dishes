@@ -559,7 +559,7 @@ function useLocation(){
 const dishCache = {};
 
 /* ---------- the Claude call ---------- */
-async function callAPI(promptText, maxTokens, useSearch, _retried=0){
+async function callClaude(promptText, maxTokens, useSearch, _retried=0){
   const payload = {
     model:"claude-haiku-4-5-20251001", max_tokens:maxTokens,
     messages:[{role:"user",content:promptText}],
@@ -584,7 +584,7 @@ async function callAPI(promptText, maxTokens, useSearch, _retried=0){
       if($('loadStep')) $('loadStep').textContent = `Rate limit — retrying in ${Math.round(waitMs/1000)}s… (${attempt+1}/3)`;
       console.warn("[route] 429, attempt", attempt+1, "waiting", waitMs, "ms");
       await new Promise(r=>setTimeout(r, waitMs));
-      return callAPI(promptText, maxTokens, useSearch, attempt+1);
+      return callClaude(promptText, maxTokens, useSearch, attempt+1);
     }
   }
   if(!res.ok){ const body=await res.text().catch(()=>""); console.error("[Worker]",res.status,body); throw new Error("net:"+res.status); }
@@ -624,7 +624,6 @@ async function reverseGeocode(lat, lng){
   return null;
 }
 
-function askClaude(promptText, maxTokens=2000){ return callAPI(promptText, maxTokens, true); }
 
 
 async function getRestaurants(lat,lng){
