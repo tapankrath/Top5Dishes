@@ -4,198 +4,207 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1a1410">
-<title>Top Dish</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fdf8f2">
+<title>Fork&amp;Find — Top 5 Dishes Near You</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23ff4d3d'/%3E%3Cpath d='M50 22c-8 0-14 6-14 15 0 7 4 11 10 13l-2 26a6 6 0 0012 0l-2-26c6-2 10-6 10-13 0-9-6-15-14-15z' fill='%23fff'/%3E%3C/svg%3E">
 <style>
   :root{
-    --bg:#1a1410;
-    --bg-soft:#221a14;
-    --card:#2a201a;
-    --card-hi:#332821;
-    --line:rgba(214,164,96,0.14);
-    --amber:#e0a458;
-    --amber-bright:#f2bd72;
-    --gold:#d6a460;
-    --text:#f4ece1;
-    --text-dim:#b8a890;
-    --text-faint:#8a7c6a;
-    --shadow:0 20px 50px -12px rgba(0,0,0,0.65);
+    --bg:#fdf8f2;
+    --bg-tint:#f6ede1;
+    --card:#ffffff;
+    --ink:#1f1a17;
+    --ink-soft:#5c534b;
+    --ink-faint:#938a7f;
+    --line:#ece2d4;
+    --line-soft:#f2ebe0;
+    --coral:#ff4d3d;
+    --coral-deep:#e63320;
+    --coral-tint:#fff0ed;
+    --gold:#f2a93b;
+    --green:#1faa6b;
+    --shadow-sm:0 2px 8px rgba(31,26,23,0.05);
+    --shadow:0 14px 36px -14px rgba(31,26,23,0.18);
+    --shadow-coral:0 14px 32px -10px rgba(255,77,61,0.45);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
   body{
-    font-family:'Outfit',sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    min-height:100dvh;
-    overflow-x:hidden;
-    position:relative;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    background:var(--bg);color:var(--ink);
+    min-height:100dvh;overflow-x:hidden;position:relative;
   }
-  /* atmospheric background */
   body::before{
     content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(224,164,88,0.13), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(180,90,40,0.08), transparent 55%);
-  }
-  body::after{
-    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.035;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+      radial-gradient(ellipse 70% 45% at 50% -5%, rgba(255,77,61,0.09), transparent 60%),
+      radial-gradient(ellipse 55% 40% at 95% 100%, rgba(242,169,59,0.10), transparent 55%);
   }
   .wrap{
-    position:relative;z-index:1;
-    max-width:520px;margin:0 auto;
-    padding:clamp(22px,6vw,34px) clamp(20px,5vw,28px) 60px;
-    min-height:100dvh;display:flex;flex-direction:column;
+    position:relative;z-index:1;max-width:540px;margin:0 auto;
+    padding:18px clamp(18px,5vw,26px) 56px;min-height:100dvh;
+    display:flex;flex-direction:column;
   }
-  /* ---- header ---- */
-  header{padding-top:14px;animation:rise .7s cubic-bezier(.2,.7,.2,1) both;}
-  .brand{display:flex;align-items:center;gap:9px;}
-  .mark{
-    width:34px;height:34px;border-radius:10px;flex:none;
-    background:linear-gradient(145deg,var(--amber-bright),var(--gold));
-    display:grid;place-items:center;
-    box-shadow:0 6px 18px -4px rgba(224,164,88,0.5);
-  }
-  .mark svg{width:19px;height:19px;}
-  .brand-name{font-family:'Fraunces',serif;font-weight:600;font-size:19px;letter-spacing:.2px;}
-  .brand-name span{color:var(--amber);}
-  h1{
-    font-family:'Fraunces',serif;font-weight:600;
-    font-size:clamp(34px,9vw,46px);line-height:1.04;
-    letter-spacing:-0.5px;margin-top:30px;
-  }
-  h1 em{font-style:italic;color:var(--amber-bright);}
-  .sub{
-    color:var(--text-dim);font-size:15.5px;line-height:1.5;
-    margin-top:14px;max-width:38ch;font-weight:300;
-  }
-  /* ---- main button ---- */
-  .stage{flex:1;display:flex;flex-direction:column;justify-content:center;padding:30px 0;}
-  .find-btn{
-    width:100%;border:none;cursor:pointer;
-    background:linear-gradient(140deg,var(--amber-bright) 0%,var(--gold) 55%,#c08840 100%);
-    color:#241a10;border-radius:20px;
-    padding:22px 24px;font-family:'Outfit',sans-serif;
-    font-size:18px;font-weight:600;letter-spacing:.2px;
+  /* ---- top bar ---- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 0 4px;}
+  .brand{display:flex;align-items:center;gap:10px;cursor:pointer;}
+  .logo{width:40px;height:40px;border-radius:13px;flex:none;
+    background:linear-gradient(145deg,var(--coral),var(--coral-deep));
+    display:grid;place-items:center;box-shadow:var(--shadow-coral);}
+  .logo svg{width:23px;height:23px;}
+  .brand-text{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.4px;line-height:1;}
+  .brand-text b{color:var(--coral);}
+  .brand-text .tag{display:block;font-family:'Plus Jakarta Sans';font-weight:500;font-size:10.5px;letter-spacing:1.2px;color:var(--ink-faint);text-transform:uppercase;margin-top:3px;}
+  .gear{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    display:grid;place-items:center;cursor:pointer;flex:none;box-shadow:var(--shadow-sm);transition:transform .15s;}
+  .gear:active{transform:scale(.92);}
+  .gear svg{width:20px;height:20px;stroke:var(--ink-soft);}
+  .gear.alert::after{content:'';position:absolute;width:9px;height:9px;border-radius:50%;background:var(--coral);
+    transform:translate(13px,-13px);border:2px solid var(--bg);}
+  .gear{position:relative;}
+  /* ---- hero ---- */
+  .hero{animation:rise .6s cubic-bezier(.2,.7,.2,1) both;}
+  h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
+    font-size:clamp(32px,8.5vw,44px);line-height:1.03;letter-spacing:-1px;margin-top:26px;}
+  h1 em{font-style:normal;color:var(--coral);}
+  .sub{color:var(--ink-soft);font-size:15.5px;line-height:1.5;margin-top:13px;max-width:36ch;font-weight:400;}
+  .stage{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px 0;}
+  .find-btn{width:100%;border:none;cursor:pointer;
+    background:linear-gradient(140deg,var(--coral),var(--coral-deep));color:#fff;border-radius:18px;
+    padding:21px 24px;font-family:'Plus Jakarta Sans';font-size:17.5px;font-weight:700;letter-spacing:.1px;
     display:flex;align-items:center;justify-content:center;gap:11px;
-    box-shadow:0 14px 36px -10px rgba(224,164,88,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
-    transition:transform .15s ease, box-shadow .2s ease;
-    animation:rise .7s .12s cubic-bezier(.2,.7,.2,1) both;
-  }
-  .find-btn:active{transform:scale(.975);box-shadow:0 8px 22px -10px rgba(224,164,88,0.55), inset 0 1px 0 rgba(255,255,255,0.3);}
-  .find-btn:disabled{opacity:.7;cursor:default;}
+    box-shadow:var(--shadow-coral);transition:transform .15s,box-shadow .2s;
+    animation:rise .6s .1s cubic-bezier(.2,.7,.2,1) both;}
+  .find-btn:active{transform:scale(.975);}
+  .find-btn:disabled{opacity:.65;}
   .find-btn svg{width:21px;height:21px;flex:none;}
-  .manual{
-    margin-top:16px;display:flex;gap:9px;align-items:center;
-    animation:rise .7s .2s cubic-bezier(.2,.7,.2,1) both;
-  }
-  .manual input{
-    flex:1;background:var(--card);border:1px solid var(--line);
-    color:var(--text);border-radius:14px;padding:15px 16px;
-    font-family:'Outfit',sans-serif;font-size:15px;outline:none;
-    transition:border-color .2s ease, background .2s ease;
-  }
-  .manual input::placeholder{color:var(--text-faint);}
-  .manual input:focus{border-color:var(--amber);background:var(--card-hi);}
-  .manual button{
-    flex:none;width:52px;border:1px solid var(--line);background:var(--card);
-    border-radius:14px;cursor:pointer;display:grid;place-items:center;
-    transition:background .2s ease,border-color .2s ease;
-  }
-  .manual button:active{background:var(--card-hi);}
-  .manual button svg{width:20px;height:20px;stroke:var(--amber);}
-  .hint{text-align:center;color:var(--text-faint);font-size:12.5px;margin-top:18px;font-weight:300;}
-  /* ---- status / loading ---- */
-  .status{
-    text-align:center;padding:28px 16px;color:var(--text-dim);
-    font-size:15px;animation:fade .4s ease both;
-  }
-  .spinner{
-    width:34px;height:34px;margin:0 auto 16px;border-radius:50%;
-    border:3px solid var(--line);border-top-color:var(--amber);
-    animation:spin .8s linear infinite;
-  }
-  .status .step{font-size:13px;color:var(--text-faint);margin-top:6px;min-height:16px;transition:opacity .3s;}
-  .err{color:#e89b8b;}
-  .err button{margin-top:14px;background:var(--card);color:var(--amber);border:1px solid var(--line);
-    padding:10px 20px;border-radius:12px;font-family:inherit;font-size:14px;cursor:pointer;}
-  /* ---- results ---- */
-  .results{animation:fade .5s ease both;}
-  .place-head{margin-bottom:6px;padding-bottom:18px;border-bottom:1px solid var(--line);}
-  .place-eyebrow{color:var(--amber);font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;}
-  .place-name{font-family:'Fraunces',serif;font-weight:600;font-size:27px;line-height:1.1;margin-top:7px;}
-  .place-meta{color:var(--text-faint);font-size:13.5px;margin-top:7px;font-weight:300;}
-  .dish{
-    display:flex;gap:15px;padding:20px 0;border-bottom:1px solid var(--line);
-    animation:rise .55s cubic-bezier(.2,.7,.2,1) both;
-  }
-  .rank{
-    flex:none;width:34px;height:34px;border-radius:11px;
-    background:var(--card-hi);border:1px solid var(--line);
-    display:grid;place-items:center;
-    font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--amber);
-    margin-top:2px;
-  }
-  .dish:nth-child(2) .rank{background:linear-gradient(145deg,var(--amber-bright),var(--gold));color:#241a10;border:none;}
-  .dish-body{flex:1;min-width:0;}
-  .dish-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
-  .dish-name{font-family:'Fraunces',serif;font-weight:600;font-size:18.5px;line-height:1.2;}
-  .dish-price{flex:none;color:var(--amber);font-size:14px;font-weight:500;white-space:nowrap;}
-  .dish-why{color:var(--text-dim);font-size:14.5px;line-height:1.55;margin-top:7px;font-weight:300;}
-  .dish-quote{
-    margin-top:11px;padding:11px 14px;background:var(--bg-soft);border-radius:12px;
-    border-left:2px solid var(--amber);
-    color:var(--text-dim);font-size:13.5px;line-height:1.5;font-style:italic;
-  }
-  .again{
-    margin-top:30px;width:100%;background:var(--card);color:var(--text);
-    border:1px solid var(--line);border-radius:16px;padding:17px;
-    font-family:'Outfit',sans-serif;font-size:15px;font-weight:500;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:9px;
-    transition:background .2s ease;
-  }
-  .again:active{background:var(--card-hi);}
-  .again svg{width:18px;height:18px;stroke:var(--amber);}
-  .sources{margin-top:18px;text-align:center;color:var(--text-faint);font-size:11.5px;line-height:1.6;font-weight:300;}
-  .disclaimer{margin-top:14px;text-align:center;color:var(--text-faint);font-size:11px;opacity:.7;font-weight:300;}
-  footer{text-align:center;color:var(--text-faint);font-size:11px;padding-top:26px;font-weight:300;opacity:.6;}
+  .manual{margin-top:14px;display:flex;gap:9px;animation:rise .6s .18s cubic-bezier(.2,.7,.2,1) both;}
+  .manual input{flex:1;background:var(--card);border:1px solid var(--line);color:var(--ink);
+    border-radius:14px;padding:15px 16px;font-family:'Plus Jakarta Sans';font-size:15px;outline:none;
+    box-shadow:var(--shadow-sm);transition:border-color .2s;}
+  .manual input::placeholder{color:var(--ink-faint);}
+  .manual input:focus{border-color:var(--coral);}
+  .manual button{flex:none;width:52px;border:1px solid var(--line);background:var(--card);border-radius:14px;
+    cursor:pointer;display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:background .2s;}
+  .manual button:active{background:var(--bg-tint);}
+  .manual button svg{width:20px;height:20px;stroke:var(--coral);}
+  .hint{text-align:center;color:var(--ink-faint);font-size:12.5px;margin-top:16px;}
+  /* ---- loading / error ---- */
+  .status{text-align:center;padding:30px 16px;color:var(--ink-soft);font-size:15px;animation:fade .4s both;}
+  .spinner{width:34px;height:34px;margin:0 auto 16px;border-radius:50%;
+    border:3px solid var(--line);border-top-color:var(--coral);animation:spin .8s linear infinite;}
+  .status .step{font-size:13px;color:var(--ink-faint);margin-top:6px;min-height:16px;transition:opacity .3s;}
+  .err{color:var(--coral-deep);}
+  .err button{margin-top:14px;background:var(--card);color:var(--coral);border:1px solid var(--line);
+    padding:11px 22px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;}
+  /* ---- shared section head ---- */
+  .sec-head{display:flex;align-items:center;gap:12px;margin:6px 0 4px;animation:fade .4s both;}
+  .back{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--card);
+    display:grid;place-items:center;cursor:pointer;flex:none;box-shadow:var(--shadow-sm);transition:transform .15s;}
+  .back:active{transform:scale(.92);}
+  .back svg{width:19px;height:19px;stroke:var(--ink);}
+  .sec-eyebrow{color:var(--coral);font-size:11.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;}
+  .sec-title{font-family:'Bricolage Grotesque';font-weight:700;font-size:22px;line-height:1.1;letter-spacing:-0.4px;margin-top:3px;}
+  .sec-meta{color:var(--ink-faint);font-size:13px;margin-top:3px;}
+  /* ---- restaurant cards ---- */
+  .rlist{margin-top:18px;}
+  .rcard{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);
+    border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer;box-shadow:var(--shadow-sm);
+    transition:transform .15s,box-shadow .2s,border-color .2s;animation:rise .5s cubic-bezier(.2,.7,.2,1) both;}
+  .rcard:active{transform:scale(.985);border-color:var(--coral);box-shadow:var(--shadow);}
+  .rrank{flex:none;width:40px;height:40px;border-radius:13px;background:var(--coral-tint);color:var(--coral-deep);
+    display:grid;place-items:center;font-family:'Bricolage Grotesque';font-weight:800;font-size:18px;}
+  .rcard:first-child .rrank{background:linear-gradient(145deg,var(--coral),var(--coral-deep));color:#fff;}
+  .rinfo{flex:1;min-width:0;}
+  .rname{font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;line-height:1.15;letter-spacing:-0.3px;}
+  .rsub{color:var(--ink-soft);font-size:13px;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;}
+  .star{color:var(--gold);font-weight:600;display:inline-flex;align-items:center;gap:3px;}
+  .star svg{width:13px;height:13px;fill:var(--gold);}
+  .chev{flex:none;color:var(--ink-faint);}
+  .chev svg{width:20px;height:20px;stroke:currentColor;}
+  /* ---- dishes ---- */
+  .dlist{margin-top:6px;}
+  .dish{display:flex;gap:14px;padding:19px 0;border-bottom:1px solid var(--line-soft);
+    animation:rise .5s cubic-bezier(.2,.7,.2,1) both;}
+  .drank{flex:none;width:32px;height:32px;border-radius:10px;background:var(--bg-tint);border:1px solid var(--line);
+    display:grid;place-items:center;font-family:'Bricolage Grotesque';font-weight:700;font-size:15px;color:var(--coral-deep);margin-top:2px;}
+  .dish:first-child .drank{background:linear-gradient(145deg,var(--coral),var(--coral-deep));color:#fff;border:none;}
+  .dbody{flex:1;min-width:0;}
+  .dtop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .dname{font-family:'Bricolage Grotesque';font-weight:700;font-size:17.5px;line-height:1.2;letter-spacing:-0.3px;}
+  .dprice{flex:none;color:var(--coral-deep);font-size:13.5px;font-weight:700;white-space:nowrap;}
+  .dwhy{color:var(--ink-soft);font-size:14px;line-height:1.55;margin-top:6px;}
+  .dquote{margin-top:10px;padding:11px 14px;background:var(--bg-tint);border-radius:12px;border-left:2px solid var(--coral);
+    color:var(--ink-soft);font-size:13px;line-height:1.5;font-style:italic;}
+  .again{margin-top:26px;width:100%;background:var(--card);color:var(--ink);border:1px solid var(--line);
+    border-radius:16px;padding:16px;font-family:'Plus Jakarta Sans';font-size:15px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:var(--shadow-sm);transition:background .2s;}
+  .again:active{background:var(--bg-tint);}
+  .again svg{width:18px;height:18px;stroke:var(--coral);}
+  .disclaimer{margin-top:14px;text-align:center;color:var(--ink-faint);font-size:11px;line-height:1.5;}
+  footer{text-align:center;color:var(--ink-faint);font-size:11px;padding-top:24px;opacity:.7;}
+  /* ---- modal (API key) ---- */
+  .overlay{position:fixed;inset:0;z-index:50;background:rgba(31,26,23,0.45);backdrop-filter:blur(4px);
+    display:grid;place-items:end center;animation:fade .25s both;}
+  .sheet{background:var(--bg);width:100%;max-width:540px;border-radius:24px 24px 0 0;padding:24px 22px 30px;
+    box-shadow:0 -10px 40px rgba(0,0,0,0.2);animation:slideup .3s cubic-bezier(.2,.7,.2,1) both;}
+  .sheet h3{font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;letter-spacing:-0.3px;}
+  .sheet p{color:var(--ink-soft);font-size:13.5px;line-height:1.55;margin-top:8px;}
+  .sheet p a{color:var(--coral);font-weight:600;text-decoration:none;}
+  .sheet label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:18px 0 7px;letter-spacing:.3px;}
+  .sheet input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;
+    font-family:'Plus Jakarta Sans';font-size:14px;outline:none;color:var(--ink);}
+  .sheet input:focus{border-color:var(--coral);}
+  .sheet-row{display:flex;gap:10px;margin-top:18px;}
+  .btn-primary{flex:1;background:linear-gradient(140deg,var(--coral),var(--coral-deep));color:#fff;border:none;
+    border-radius:13px;padding:14px;font-family:'Plus Jakarta Sans';font-size:15px;font-weight:700;cursor:pointer;}
+  .btn-ghost{flex:none;padding:14px 18px;background:transparent;color:var(--ink-soft);border:1px solid var(--line);
+    border-radius:13px;font-family:'Plus Jakarta Sans';font-size:15px;font-weight:600;cursor:pointer;}
+  .key-status{font-size:12px;margin-top:12px;display:flex;align-items:center;gap:6px;}
+  .key-status.ok{color:var(--green);} .key-status.no{color:var(--ink-faint);}
+  .key-note{margin-top:14px;font-size:11.5px;color:var(--ink-faint);line-height:1.5;background:var(--bg-tint);
+    padding:11px 13px;border-radius:11px;}
   @keyframes spin{to{transform:rotate(360deg);}}
-  @keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
   @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  @keyframes slideup{from{transform:translateY(100%);}to{transform:translateY(0);}}
   .hidden{display:none !important;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="mark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#241a10" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 3v7M8 3v7M5 10h3M6.5 10v11M16 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4 2.5-1 2.5-4-1-5-2.5-5zM16 12v9"/>
+  <div class="topbar">
+    <div class="brand" id="brandHome">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C8.7 2 6 4.7 6 8c0 2.6 1.7 4.4 4 5.2L9 21a3 3 0 0 0 6 0l-1-7.8c2.3-.8 4-2.6 4-5.2 0-3.3-2.7-6-6-6z"/>
         </svg>
       </div>
-      <div class="brand-name">Top<span>Dish</span></div>
+      <div class="brand-text">Fork<b>&amp;</b>Find<span class="tag">Eat the best, everywhere</span></div>
     </div>
-  </header>
+    <div class="gear" id="gearBtn" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>
+      </svg>
+    </div>
+  </div>
 
-  <!-- HOME VIEW -->
+  <!-- HOME -->
   <div class="stage" id="home">
-    <h1>What should I<br><em>actually</em> order?</h1>
-    <p class="sub">Tap once. I'll find where you are and pull the 5 most-loved dishes from real reviews across the web.</p>
-
-    <div style="margin-top:34px;">
+    <div class="hero">
+      <h1>Eat the <em>best</em> dish,<br>wherever you are.</h1>
+      <p class="sub">Find the top-rated restaurants around you — then the 5 dishes people rave about at each one.</p>
+    </div>
+    <div style="margin-top:30px;">
       <button class="find-btn" id="locateBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>
         </svg>
-        Find top dishes near me
+        Find great restaurants near me
       </button>
-
       <div class="manual">
         <input id="placeInput" type="text" placeholder="…or type a restaurant name" autocomplete="off" enterkeyhint="search">
         <button id="searchBtn" aria-label="Search">
@@ -204,11 +213,11 @@
           </svg>
         </button>
       </div>
-      <p class="hint">Works at any restaurant, anywhere you go.</p>
+      <p class="hint">Allow location once — then it just works, anywhere you go.</p>
     </div>
   </div>
 
-  <!-- LOADING VIEW -->
+  <!-- LOADING -->
   <div class="stage hidden" id="loading">
     <div class="status">
       <div class="spinner"></div>
@@ -217,170 +226,224 @@
     </div>
   </div>
 
-  <!-- ERROR VIEW -->
+  <!-- ERROR -->
   <div class="stage hidden" id="error">
     <div class="status err">
       <div id="errMsg">Something went wrong.</div>
-      <button id="retryBtn">Try again</button>
+      <button id="retryBtn">Back to start</button>
     </div>
   </div>
 
-  <!-- RESULTS VIEW -->
-  <div class="hidden" id="results">
-    <div class="results">
-      <div class="place-head">
-        <div class="place-eyebrow">Top 5 dishes</div>
-        <div class="place-name" id="rPlace">Restaurant</div>
-        <div class="place-meta" id="rMeta"></div>
+  <!-- RESTAURANT LIST -->
+  <div class="hidden" id="restaurants">
+    <div class="sec-head">
+      <div class="back" id="rBack"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+      <div>
+        <div class="sec-eyebrow">Top spots near you</div>
+        <div class="sec-title" id="rArea">Restaurants nearby</div>
       </div>
-      <div id="dishList"></div>
-      <div class="disclaimer" id="rDisclaimer"></div>
-      <button class="again" id="againBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 12a9 9 0 1 1 3 6.7M3 12v5h5"/>
-        </svg>
-        Search another place
-      </button>
     </div>
+    <div class="rlist" id="rList"></div>
+    <div class="disclaimer">Ranked from recent online reviews · Tap one to see its best dishes</div>
   </div>
 
-  <footer>Powered by live web reviews · Always double-check the menu</footer>
+  <!-- DISHES -->
+  <div class="hidden" id="dishes">
+    <div class="sec-head">
+      <div class="back" id="dBack"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
+      <div>
+        <div class="sec-eyebrow">Top 5 dishes</div>
+        <div class="sec-title" id="dPlace">Restaurant</div>
+        <div class="sec-meta" id="dMeta"></div>
+      </div>
+    </div>
+    <div class="dlist" id="dList"></div>
+    <div class="disclaimer" id="dDisclaimer"></div>
+    <button class="again" id="dAgain">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7M3 12v5h5"/></svg>
+      Start over
+    </button>
+  </div>
+
+  <footer>Fork&amp;Find · Menus &amp; prices change — confirm in person</footer>
+</div>
+
+<!-- API KEY SHEET -->
+<div class="overlay hidden" id="overlay">
+  <div class="sheet">
+    <h3>Connect your API key</h3>
+    <p>This app asks Claude to search the web for you. To run on your own site, paste an Anthropic API key — get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.</p>
+    <label for="keyInput">Anthropic API key</label>
+    <input id="keyInput" type="password" placeholder="sk-ant-…" autocomplete="off">
+    <div class="key-status no" id="keyStatus">No key saved yet</div>
+    <div class="key-note">🔒 Your key is stored only on this device, in your browser. It never leaves your phone except to call Anthropic directly. For a public app shared with others, use a backend proxy instead (see notes).</div>
+    <div class="sheet-row">
+      <button class="btn-ghost" id="keyClear">Clear</button>
+      <button class="btn-primary" id="keySave">Save key</button>
+    </div>
+  </div>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
-const views = {home:$('home'), loading:$('loading'), error:$('error'), results:$('results')};
-function show(v){ for(const k in views){ views[k].classList.toggle('hidden', k!==v); } }
+const views = {home:$('home'),loading:$('loading'),error:$('error'),restaurants:$('restaurants'),dishes:$('dishes')};
+function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==v); window.scrollTo(0,0); }
 
-const loadingLines = [
-  "Reading recent reviews…",
-  "Cross-checking what diners rave about…",
-  "Ranking the crowd favourites…",
-  "Pulling price hints…"
-];
-let stepTimer;
-function runSteps(){
-  let i=0; $('loadStep').textContent = loadingLines[0];
-  stepTimer = setInterval(()=>{ i=(i+1)%loadingLines.length; 
-    const el=$('loadStep'); el.style.opacity=0;
-    setTimeout(()=>{ el.textContent=loadingLines[i]; el.style.opacity=1; },200);
-  }, 2200);
+/* ---------- API key handling ---------- */
+const KEY_NAME='fnf_anthropic_key';
+let apiKey = '';
+try{ apiKey = localStorage.getItem(KEY_NAME) || ''; }catch(e){}
+// NOTE: when running inside Claude's artifact viewer, leave the key blank —
+// the platform injects credentials automatically. The key is only needed on
+// your own hosted site (e.g. GitHub Pages).
+const RUNNING_IN_CLAUDE = location.hostname.endsWith('claude.ai') || location.hostname.endsWith('claudeusercontent.com') || location.hostname==='localhost';
+
+function refreshKeyUI(){
+  const has = !!apiKey;
+  $('keyStatus').className = 'key-status ' + (has?'ok':'no');
+  $('keyStatus').textContent = has ? '✓ Key saved on this device' : 'No key saved yet';
+  $('keyInput').value = has ? apiKey : '';
+  $('gearBtn').classList.toggle('alert', !has && !RUNNING_IN_CLAUDE);
 }
+$('gearBtn').addEventListener('click', ()=>{ refreshKeyUI(); $('overlay').classList.remove('hidden'); });
+$('overlay').addEventListener('click', e=>{ if(e.target===$('overlay')) $('overlay').classList.add('hidden'); });
+$('keySave').addEventListener('click', ()=>{
+  const v=$('keyInput').value.trim();
+  apiKey=v; try{ localStorage.setItem(KEY_NAME,v); }catch(e){}
+  refreshKeyUI(); $('overlay').classList.add('hidden');
+});
+$('keyClear').addEventListener('click', ()=>{
+  apiKey=''; try{ localStorage.removeItem(KEY_NAME); }catch(e){}
+  refreshKeyUI();
+});
+refreshKeyUI();
+
+/* ---------- loading copy ---------- */
+const loadingLines=["Scanning recent reviews…","Checking ratings & favourites…","Ranking the best spots…","Almost there…"];
+let stepTimer;
+function runSteps(){ let i=0; $('loadStep').textContent=loadingLines[0];
+  stepTimer=setInterval(()=>{ i=(i+1)%loadingLines.length; const el=$('loadStep');
+    el.style.opacity=0; setTimeout(()=>{ el.textContent=loadingLines[i]; el.style.opacity=1; },200);},2200);}
 function stopSteps(){ clearInterval(stepTimer); }
+function fail(msg){ stopSteps(); $('errMsg').textContent=msg; show('error'); }
 
-function fail(msg){ stopSteps(); $('errMsg').textContent = msg; show('error'); }
-
-// ---- entry points ----
-$('locateBtn').addEventListener('click', useLocation);
-$('searchBtn').addEventListener('click', ()=>{ const v=$('placeInput').value.trim(); if(v) runSearch({name:v}); });
-$('placeInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const v=e.target.value.trim(); if(v) runSearch({name:v}); }});
+/* ---------- navigation ---------- */
+$('brandHome').addEventListener('click', ()=> show('home'));
 $('retryBtn').addEventListener('click', ()=> show('home'));
-$('againBtn').addEventListener('click', ()=>{ $('placeInput').value=''; show('home'); });
+$('rBack').addEventListener('click', ()=> show('home'));
+$('dBack').addEventListener('click', ()=> lastRestaurants ? show('restaurants') : show('home'));
+$('dAgain').addEventListener('click', ()=>{ $('placeInput').value=''; show('home'); });
+$('locateBtn').addEventListener('click', useLocation);
+$('searchBtn').addEventListener('click', ()=>{ const v=$('placeInput').value.trim(); if(v) getDishes({name:v}); });
+$('placeInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const v=e.target.value.trim(); if(v) getDishes({name:v}); }});
+
+let lastRestaurants=null;
 
 function useLocation(){
   show('loading'); $('loadMain').textContent='Finding you…'; runSteps();
-  if(!navigator.geolocation){ return runSearch({name: askFallback()}); }
+  if(!navigator.geolocation){ const n=prompt("Type the restaurant name:"); return n?getDishes({name:n}):show('home'); }
   navigator.geolocation.getCurrentPosition(
-    pos => runSearch({lat:pos.coords.latitude, lng:pos.coords.longitude}),
-    err => {
-      stopSteps();
-      const name = askFallback();
-      if(name) runSearch({name}); else show('home');
-    },
-    {enableHighAccuracy:true, timeout:10000, maximumAge:60000}
-  );
-}
-function askFallback(){
-  return prompt("Couldn't get your location. Type the restaurant name instead:") || "";
+    pos=> getRestaurants(pos.coords.latitude,pos.coords.longitude),
+    err=>{ stopSteps(); const n=prompt("Couldn't get location. Type a restaurant or area:"); n?getDishes({name:n}):show('home'); },
+    {enableHighAccuracy:true,timeout:10000,maximumAge:60000});
 }
 
-// ---- the core: ask Claude (with web search) ----
-async function runSearch({lat,lng,name}){
-  show('loading'); runSteps();
-  $('loadMain').textContent = name ? `Looking up ${name}…` : 'Identifying the restaurant nearest you…';
-
-  const locClause = name
-    ? `The restaurant is named "${name}".`
-    : `The user is physically at these GPS coordinates: latitude ${lat}, longitude ${lng}. First determine the single most likely restaurant the user is currently sitting in at those exact coordinates (the closest dining establishment).`;
-
-  const prompt = `You are a local food expert with live web access. ${locClause}
-
-Use web search to read recent reviews (Google, Yelp, TripAdvisor, Reddit, food blogs) and identify the FIVE most popular / most-recommended dishes at THIS specific restaurant.
-
-For each dish give: the dish name, one sentence on why reviewers love it, a short real review-style impression, and an approximate price (use local currency; if unknown, estimate a typical range and mark it ~).
-
-Respond with ONLY a raw JSON object, no markdown, no backticks, in exactly this shape:
-{
-  "found": true,
-  "restaurant": "exact restaurant name",
-  "location": "neighbourhood / city",
-  "cuisine": "cuisine type",
-  "confidence": "high | medium | low",
-  "dishes": [
-    {"name":"", "why":"", "quote":"", "price":""}
-  ]
+/* ---------- the Claude call ---------- */
+async function askClaude(promptText){
+  const headers={"Content-Type":"application/json"};
+  if(apiKey){ headers["x-api-key"]=apiKey; headers["anthropic-version"]="2023-06-01";
+              headers["anthropic-dangerous-direct-browser-access"]="true"; }
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",headers,
+    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1600,
+      messages:[{role:"user",content:promptText}],
+      tools:[{type:"web_search_20250305",name:"web_search"}]})});
+  if(res.status===401||res.status===403) throw new Error("auth");
+  if(!res.ok) throw new Error("net");
+  const data=await res.json();
+  const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  const j=text.replace(/```json|```/g,"").trim().replace(/^[^{[]*/,"").replace(/[^}\]]*$/,"");
+  return JSON.parse(j);
 }
-If you genuinely cannot identify the restaurant or find any dish info, return {"found": false, "reason":"short explanation"}.`;
 
+async function getRestaurants(lat,lng){
+  show('loading'); $('loadMain').textContent='Finding great spots near you…'; runSteps();
+  const p=`You are a local food guide with live web access. The user is at GPS latitude ${lat}, longitude ${lng}.
+Use web search to find the FIVE best-reviewed, most popular restaurants within close walking/driving distance of those coordinates right now.
+Respond with ONLY raw JSON, no markdown:
+{"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.6","reviews":"1,200","distance":"0.3 mi","blurb":"one short line on why it's loved"}]}
+Give exactly 5, best first. If nothing found return {"found":false,"reason":"..."}.`;
   try{
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:1500,
-        messages:[{role:"user", content:prompt}],
-        tools:[{type:"web_search_20250305", name:"web_search"}]
-      })
-    });
-    if(!res.ok) throw new Error("network");
-    const data = await res.json();
-
-    const text = (data.content||[])
-      .filter(b=>b.type==="text").map(b=>b.text).join("\n");
-
-    const jsonStr = text.replace(/```json|```/g,"").trim()
-      .replace(/^[^{]*/,"").replace(/[^}]*$/,"");
-    const result = JSON.parse(jsonStr);
-
-    stopSteps();
-    if(!result.found){ return fail(result.reason || "I couldn't pin down that restaurant. Try typing its full name."); }
-    render(result);
-  }catch(e){
-    fail("I couldn't complete the search just now. Check your connection and try again.");
-  }
+    const r=await askClaude(p); stopSteps();
+    if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
+    lastRestaurants=r; renderRestaurants(r);
+  }catch(e){ handleErr(e); }
 }
 
-// ---- render ----
-function render(r){
-  $('rPlace').textContent = r.restaurant || "This restaurant";
-  const bits = [r.cuisine, r.location].filter(Boolean).join(" · ");
-  $('rMeta').textContent = bits;
+async function getDishes(opts){
+  show('loading'); $('loadMain').textContent = opts.name?`Looking up ${opts.name}…`:'Loading dishes…'; runSteps();
+  const loc = opts.name?`The restaurant is "${opts.name}"${opts.area?` in ${opts.area}`:''}.`:'';
+  const p=`You are a food expert with live web access. ${loc}
+Use web search to read recent reviews (Google, Yelp, TripAdvisor, Reddit, blogs) and find the FIVE most popular dishes to order at THIS specific restaurant.
+Respond with ONLY raw JSON, no markdown:
+{"found":true,"restaurant":"exact name","location":"area","cuisine":"","confidence":"high|medium|low","dishes":[{"name":"","why":"one sentence","quote":"short review-style impression","price":"approx, local currency, ~ if estimated"}]}
+Give exactly 5, best first. If you can't identify it return {"found":false,"reason":"..."}.`;
+  try{
+    const r=await askClaude(p); stopSteps();
+    if(!r.found) return fail(r.reason||"Couldn't pin down that restaurant. Try its full name.");
+    renderDishes(r);
+  }catch(e){ handleErr(e); }
+}
 
-  const list = $('dishList'); list.innerHTML="";
+function handleErr(e){
+  if(e.message==="auth"){ fail("Your API key was rejected. Tap the gear ⚙ to check it."); }
+  else if(!apiKey && !RUNNING_IN_CLAUDE){ fail("This site needs an API key to search. Tap the gear ⚙ at the top to add one."); }
+  else{ fail("Couldn't complete the search. Check your connection and try again."); }
+}
+
+/* ---------- render ---------- */
+function renderRestaurants(r){
+  $('rArea').textContent = r.area || 'Restaurants nearby';
+  const list=$('rList'); list.innerHTML='';
+  (r.restaurants||[]).slice(0,5).forEach((x,i)=>{
+    const el=document.createElement('div');
+    el.className='rcard'; el.style.animationDelay=(i*0.06)+'s';
+    const stars = x.rating?`<span class="star"><svg viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>${esc(x.rating)}</span>`:'';
+    const rev = x.reviews?`${esc(x.reviews)} reviews`:'';
+    const dist = x.distance?esc(x.distance):'';
+    el.innerHTML=`<div class="rrank">${i+1}</div>
+      <div class="rinfo">
+        <div class="rname">${esc(x.name||'')}</div>
+        <div class="rsub">${stars}${x.cuisine?`<span>${esc(x.cuisine)}</span>`:''}${rev?`<span>${rev}</span>`:''}${dist?`<span>${dist}</span>`:''}</div>
+      </div>
+      <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>`;
+    el.addEventListener('click', ()=> getDishes({name:x.name, area:r.area}));
+    list.appendChild(el);
+  });
+  show('restaurants');
+}
+
+function renderDishes(r){
+  $('dPlace').textContent=r.restaurant||'This restaurant';
+  $('dMeta').textContent=[r.cuisine,r.location].filter(Boolean).join(' · ');
+  const list=$('dList'); list.innerHTML='';
   (r.dishes||[]).slice(0,5).forEach((d,i)=>{
     const el=document.createElement('div');
     el.className='dish'; el.style.animationDelay=(i*0.07)+'s';
-    el.innerHTML = `
-      <div class="rank">${i+1}</div>
-      <div class="dish-body">
-        <div class="dish-top">
-          <div class="dish-name">${esc(d.name||'')}</div>
-          ${d.price?`<div class="dish-price">${esc(d.price)}</div>`:''}
-        </div>
-        ${d.why?`<div class="dish-why">${esc(d.why)}</div>`:''}
-        ${d.quote?`<div class="dish-quote">"${esc(d.quote)}"</div>`:''}
+    el.innerHTML=`<div class="drank">${i+1}</div>
+      <div class="dbody">
+        <div class="dtop"><div class="dname">${esc(d.name||'')}</div>${d.price?`<div class="dprice">${esc(d.price)}</div>`:''}</div>
+        ${d.why?`<div class="dwhy">${esc(d.why)}</div>`:''}
+        ${d.quote?`<div class="dquote">"${esc(d.quote)}"</div>`:''}
       </div>`;
     list.appendChild(el);
   });
-
-  $('rDisclaimer').textContent = (r.confidence==='low')
-    ? "⚠ Low confidence on the exact restaurant — double-check this is the right place."
-    : "Based on recent online reviews — menus & prices change, so confirm in person.";
-
-  show('results');
+  $('dDisclaimer').textContent = (r.confidence==='low')
+    ? '⚠ Low confidence on the exact restaurant — double-check this is the right place.'
+    : 'Based on recent online reviews — confirm the menu in person.';
+  show('dishes');
 }
-function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 </script>
 </body>
 </html>
