@@ -2,13 +2,14 @@
   "name": "Fork&Find",
   "short_name": "Fork&Find",
   "description": "Top 5 dishes near you",
-  "start_url": "/",
+  "start_url": "/Top5dishes/",
   "display": "standalone",
   "background_color": "#fdf8f2",
   "theme_color": "#ff4d3d",
   "orientation": "portrait",
   "icons": [
-    {"src": "icon-192x192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+    {"src": "/Top5dishes/apple-touch-icon.png", "sizes": "180x180", "type": "image/png"},
+    {"src": "/Top5dishes/icon-192x192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/Top5dishes/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
   ]
 }
