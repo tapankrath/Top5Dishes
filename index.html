@@ -289,6 +289,14 @@ const $ = id => document.getElementById(id);
 const views = {home:$('home'),loading:$('loading'),error:$('error'),restaurants:$('restaurants'),dishes:$('dishes')};
 function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==v); window.scrollTo(0,0); }
 
+/* ========================================================
+   BACKEND PROXY  —  set this to your Cloudflare Worker URL.
+   Once set, the app calls your Worker (which holds the key
+   secretly and runs web search server-side). This is what
+   makes the live site actually work.
+   ======================================================== */
+const PROXY_URL = "https://top5dishes.tapankrath.workers.dev";
+
 /* ---------- API key handling ---------- */
 const KEY_NAME='fnf_anthropic_key';
 let apiKey = '';
@@ -303,7 +311,7 @@ function refreshKeyUI(){
   $('keyStatus').className = 'key-status ' + (has?'ok':'no');
   $('keyStatus').textContent = has ? '✓ Key saved on this device' : 'No key saved yet';
   $('keyInput').value = has ? apiKey : '';
-  $('gearBtn').classList.toggle('alert', !has && !RUNNING_IN_CLAUDE);
+  $('gearBtn').classList.toggle('alert', !has && !RUNNING_IN_CLAUDE && !PROXY_URL);
 }
 $('gearBtn').addEventListener('click', ()=>{ refreshKeyUI(); $('overlay').classList.remove('hidden'); });
 $('overlay').addEventListener('click', e=>{ if(e.target===$('overlay')) $('overlay').classList.add('hidden'); });
@@ -350,14 +358,27 @@ function useLocation(){
 
 /* ---------- the Claude call ---------- */
 async function askClaude(promptText){
-  const headers={"Content-Type":"application/json"};
-  if(apiKey){ headers["x-api-key"]=apiKey; headers["anthropic-version"]="2023-06-01";
-              headers["anthropic-dangerous-direct-browser-access"]="true"; }
-  const res=await fetch("https://api.anthropic.com/v1/messages",{
-    method:"POST",headers,
-    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1600,
-      messages:[{role:"user",content:promptText}],
-      tools:[{type:"web_search_20250305",name:"web_search"}]})});
+  const payload = {
+    model:"claude-sonnet-4-20250514", max_tokens:1600,
+    messages:[{role:"user",content:promptText}],
+    tools:[{type:"web_search_20250305",name:"web_search"}]
+  };
+
+  let url, headers;
+  if (PROXY_URL) {
+    // Preferred path: your backend proxy. Web search works here, key stays secret.
+    url = PROXY_URL;
+    headers = {"Content-Type":"application/json"};
+  } else {
+    // Fallback: direct browser call (works inside Claude's preview; on a public
+    // site it needs a key AND may not support the web_search tool).
+    url = "https://api.anthropic.com/v1/messages";
+    headers = {"Content-Type":"application/json"};
+    if(apiKey){ headers["x-api-key"]=apiKey; headers["anthropic-version"]="2023-06-01";
+                headers["anthropic-dangerous-direct-browser-access"]="true"; }
+  }
+
+  const res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)});
   if(res.status===401||res.status===403) throw new Error("auth");
   if(!res.ok) throw new Error("net");
   const data=await res.json();
@@ -396,9 +417,9 @@ Give exactly 5, best first. If you can't identify it return {"found":false,"reas
 }
 
 function handleErr(e){
-  if(e.message==="auth"){ fail("Your API key was rejected. Tap the gear ⚙ to check it."); }
-  else if(!apiKey && !RUNNING_IN_CLAUDE){ fail("This site needs an API key to search. Tap the gear ⚙ at the top to add one."); }
-  else{ fail("Couldn't complete the search. Check your connection and try again."); }
+  if(e.message==="auth"){ fail("The API key was rejected. If you're using the proxy, check the ANTHROPIC_API_KEY secret in Cloudflare; otherwise tap the gear ⚙."); }
+  else if(!PROXY_URL && !apiKey && !RUNNING_IN_CLAUDE){ fail("This site needs a backend proxy (or a key) to search. See the README setup steps."); }
+  else{ fail("Couldn't reach the search service. If you just deployed the Worker, give it a minute, then check its URL matches PROXY_URL."); }
 }
 
 /* ---------- render ---------- */

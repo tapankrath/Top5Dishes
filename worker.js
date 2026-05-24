@@ -20,7 +20,7 @@
  * your site can use the Worker.
  */
 
-const ALLOWED_ORIGIN = "*"; // e.g. "https://tapankrath.github.io"
+const ALLOWED_ORIGIN = "https://tapankrath.github.io";
 
 export default {
   async fetch(request, env) {
