@@ -182,6 +182,7 @@
   @keyframes fade{from{opacity:0;}to{opacity:1;}}
   @keyframes slideup{from{transform:translateY(100%);}to{transform:translateY(0);}}
   .hidden{display:none !important;}
+  #keyModal:not(.hidden){display:flex;}
 </style>
 </head>
 <body>
@@ -322,7 +323,7 @@
   <div id="keySavedMsg" class="hidden" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1faa6b;color:#fff;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:999;white-space:nowrap;">✅ API key saved!</div>
 
   <!-- API Key modal -->
-  <div id="keyModal" class="hidden" style="position:fixed;inset:0;z-index:998;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div id="keyModal" class="hidden" style="position:fixed;inset:0;z-index:998;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;padding:24px;">
     <div style="background:var(--card);border-radius:20px;padding:24px;width:100%;max-width:420px;box-shadow:var(--shadow);">
       <div style="font-family:'Bricolage Grotesque';font-weight:800;font-size:19px;margin-bottom:6px;">🔑 API Key</div>
       <div style="font-size:13px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">Paste your Anthropic API key to use the app directly — no rate limits. Saved only on this device.<br><br>Get one at <b>console.anthropic.com</b></div>
