@@ -337,9 +337,8 @@ function getApiKey(){ return localStorage.getItem('ff_apikey') || ''; }
 function saveApiKey(k){ localStorage.setItem('ff_apikey', k.trim()); }
 function showSettings(){
   const cur = getApiKey();
-  const k = prompt("Paste your Anthropic API key (starts with sk-ant-):
-It's saved only on this device.", cur);
-  if(k !== null && k.trim()) { saveApiKey(k); alert("✅ Key saved! You can now use the app without the worker."); }
+  const k = prompt("Paste your Anthropic API key (sk-ant-...):", cur);
+  if(k !== null && k.trim()) { saveApiKey(k); alert("Key saved!"); }
 }
 
 /* ---------- loading copy ---------- */
