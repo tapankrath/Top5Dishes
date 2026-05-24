@@ -375,6 +375,9 @@
       <div class="key-label">🗺 Google Places API Key</div>
       <input class="key-input" id="inputGoogle" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false">
       <div class="key-status" id="statusGoogle"></div>
+      <div class="key-label">📍 Location Override <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-faint)">(optional — for desktop/testing)</span></div>
+      <input class="key-input" id="inputLocation" type="text" placeholder="e.g. Ashburn, Virginia" autocomplete="off" spellcheck="false">
+      <div class="key-status miss" id="statusLocation">Leave blank to use GPS on phone</div>
       <button class="modal-save" onclick="saveSettings()">Save Keys</button>
       <button class="modal-cancel" onclick="closeSettings()">Cancel</button>
     </div>
@@ -403,6 +406,7 @@ function getGoogleKey(){ return (localStorage.getItem('ff_gplaces')||'').trim();
 function showSettings(){
   $('inputAnthropic').value = getAnthropicKey();
   $('inputGoogle').value = getGoogleKey();
+  $('inputLocation').value = getLocationOverride();
   updateKeyStatus();
   $('settingsModal').classList.add('open');
 }
@@ -413,11 +417,18 @@ function updateKeyStatus(){
   $('statusAnthropic').className = 'key-status '+(ak?'ok':'miss');
   $('statusGoogle').textContent = gk ? '✓ Saved — accurate GPS search enabled' : 'Not set — will use AI estimate';
   $('statusGoogle').className = 'key-status '+(gk?'ok':'miss');
+  const loc = getLocationOverride();
+  $('statusLocation').textContent = loc ? `✓ Using: ${loc}` : 'Leave blank to use GPS on phone';
+  $('statusLocation').className = 'key-status '+(loc?'ok':'miss');
 }
+function getLocationOverride(){ return (localStorage.getItem('ff_location')||'').trim(); }
 function saveSettings(){
-  const ak=$('inputAnthropic').value.trim(), gk=$('inputGoogle').value.trim();
+  const ak=$('inputAnthropic').value.trim();
+  const gk=$('inputGoogle').value.trim();
+  const loc=$('inputLocation').value.trim();
   if(ak) localStorage.setItem('ff_apikey',ak);
   if(gk) localStorage.setItem('ff_gplaces',gk);
+  localStorage.setItem('ff_location', loc);
   closeSettings();
 }
 
