@@ -463,6 +463,7 @@ If uncertain, return your best guess with found:true — never return found:fals
 }
 
 let lastRestaurants=null;
+let lastLocLabel='';
 
 function useLocation(){
   show('loading'); $('loadMain').textContent='Finding you…'; runSteps();
@@ -551,15 +552,27 @@ async function getRestaurants(lat,lng){
   if(locName) $('loadMain').textContent = `Finding spots near ${locName}…`;
 
   // Step 1: get restaurant list
-  const locLabel = locName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-  const locHint = `The user is physically located in ${locLabel}. GPS coordinates confirm: ${lat.toFixed(5)}, ${lng.toFixed(5)}.`;
-  const p=`You are a local food guide. ${locHint}
-Search for restaurants specifically in ${locLabel} — this is the ONLY acceptable location. Do NOT suggest restaurants from neighbouring cities, nearby metros, or anywhere else.${cuisineHint}
-Search query to use: "best restaurants in ${locLabel}"
-RULES:
-1. Return exactly 5 restaurants physically located in or immediately adjacent to ${locLabel}. NEVER return found:false.
-2. The "area" field in your response MUST be "${locLabel}" — do not change it.
-3. Ratings/reviews/distance can be approximate — never refuse due to missing data.
+  // Use city-level name only (not neighbourhood) to avoid confusing Claude
+  const cityName = locName ? locName.split(',').slice(-2).join(',').trim() : null;
+  lastLocLabel = cityName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  const locLabel = lastLocLabel;
+  const coordStr = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+  const p=`You are a local food guide with web search access.
+The user's GPS coordinates are: ${coordStr}
+Verified location: ${locLabel}
+
+YOUR TASK: Search the web RIGHT NOW for highly-rated restaurants near coordinates ${coordStr} (${locLabel}).
+- Use search query: restaurants near ${coordStr}
+- OR: best restaurants in ${locLabel} ${new Date().getFullYear()}
+${cuisineHint ? `- Filter for: ${cuisineHint}` : ''}
+
+STRICT RULES:
+1. ONLY include restaurants that actually exist near ${coordStr}. Do NOT invent or hallucinate restaurants.
+2. Do NOT use restaurants from your training memory — only use what web search returns right now.
+3. Return exactly 5. NEVER return found:false.
+4. The "area" field MUST reflect the actual location near ${coordStr}.
+
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"${locLabel}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
   let r;
@@ -633,7 +646,7 @@ function handleErr(e){
 
 /* ---------- render ---------- */
 function renderRestaurants(r){
-  $('rArea').textContent = r.area || 'Restaurants nearby';
+  $('rArea').textContent = lastLocLabel || r.area || 'Restaurants nearby';
   const list=$('rList'); list.innerHTML='';
   (r.restaurants||[]).slice(0,5).forEach((x,i)=>{
     const el=document.createElement('div');
