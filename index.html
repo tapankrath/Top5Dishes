@@ -5,7 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#fdf8f2">
+<meta name="apple-mobile-web-app-title" content="Fork&amp;Find">
+<link rel="apple-touch-icon" sizes="57x57"  href="icons/icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60"  href="icons/icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72"  href="icons/icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76"  href="icons/icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="icons/icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167x167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96x96.png">
+<link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4d3d">
 <title>Fork&amp;Find — Top 5 Dishes Near You</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +32,8 @@
     --bg-tint:#f6ede1;
     --card:#ffffff;
     --ink:#1f1a17;
-    --ink-soft:#5c534b;
-    --ink-faint:#938a7f;
+    --ink-soft:#3a322b;
+    --ink-faint:#6b6057;
     --line:#ece2d4;
     --line-soft:#f2ebe0;
     --coral:#ff4d3d;
@@ -91,6 +106,38 @@
     cursor:pointer;display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:background .2s;}
   .manual button:active{background:var(--bg-tint);}
   .manual button svg{width:20px;height:20px;stroke:var(--coral);}
+  /* ---- two-option search cards ---- */
+  .search-options{margin-top:16px;display:flex;flex-direction:column;gap:11px;animation:rise .6s .18s cubic-bezier(.2,.7,.2,1) both;}
+  .sopt{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:16px 18px;cursor:pointer;
+    display:flex;align-items:flex-start;gap:13px;box-shadow:var(--shadow-sm);transition:border-color .2s,box-shadow .2s,transform .15s;}
+  .sopt:active{transform:scale(.985);}
+  .sopt.active{border-color:var(--coral);box-shadow:0 0 0 3px rgba(255,77,61,0.10),var(--shadow-sm);}
+  .sopt-icon{flex:none;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+    background:var(--coral-tint);}
+  .sopt-icon svg{width:22px;height:22px;stroke:var(--coral);fill:none;}
+  .sopt-label{font-family:'Bricolage Grotesque';font-weight:700;font-size:15.5px;letter-spacing:-0.2px;line-height:1.2;}
+  .sopt-desc{color:var(--ink-soft);font-size:13px;line-height:1.45;margin-top:3px;}
+  .sopt-badge{display:inline-block;background:var(--coral-tint);color:var(--coral-deep);font-size:10px;font-weight:700;
+    letter-spacing:.8px;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-bottom:4px;}
+  /* place input inside Option B */
+  .sopt-input-wrap{margin-top:10px;display:flex;gap:8px;}
+  .sopt-input-wrap input{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--ink);
+    border-radius:11px;padding:11px 13px;font-family:'Plus Jakarta Sans';font-size:14.5px;outline:none;transition:border-color .2s;}
+  .sopt-input-wrap input::placeholder{color:var(--ink-faint);}
+  .sopt-input-wrap input:focus{border-color:var(--coral);}
+  .sopt-input-wrap button{flex:none;width:44px;border:1px solid var(--line);background:var(--card);border-radius:11px;
+    cursor:pointer;display:grid;place-items:center;transition:background .2s;}
+  .sopt-input-wrap button:active{background:var(--bg-tint);}
+  .sopt-input-wrap button svg{width:18px;height:18px;stroke:var(--coral);}
+  /* ---- cuisine filter row ---- */
+  .cuisine-row{margin-top:14px;animation:rise .6s .22s cubic-bezier(.2,.7,.2,1) both;}
+  .cuisine-chips{display:flex;gap:7px;flex-wrap:wrap;}
+  .chip{background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);border-radius:20px;
+    padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;box-shadow:var(--shadow-sm);
+    display:inline-flex;align-items:center;gap:5px;}
+  .chip:active{transform:scale(.95);}
+  .chip.sel{background:var(--coral-tint);border-color:var(--coral);color:var(--coral-deep);}
+  .chip.sel::before{content:'✓';font-size:11px;}
   .hint{text-align:center;color:var(--ink-faint);font-size:12.5px;margin-top:16px;}
   /* ---- loading / error ---- */
   .status{text-align:center;padding:30px 16px;color:var(--ink-soft);font-size:15px;animation:fade .4s both;}
@@ -205,14 +252,58 @@
         </svg>
         Find great restaurants near me
       </button>
-      <div class="manual">
-        <input id="placeInput" type="text" placeholder="…or type a restaurant name" autocomplete="off" enterkeyhint="search">
-        <button id="searchBtn" aria-label="Search">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>
-          </svg>
-        </button>
+
+      <!-- Cuisine filter -->
+      <div class="cuisine-row">
+        <div class="cuisine-chips" id="cuisineChips">
+          <span class="chip" data-cuisine="">🍽 All</span>
+          <span class="chip" data-cuisine="Italian">🍝 Italian</span>
+          <span class="chip" data-cuisine="Indian">🍛 Indian</span>
+          <span class="chip" data-cuisine="Japanese">🍱 Japanese</span>
+          <span class="chip" data-cuisine="Mexican">🌮 Mexican</span>
+          <span class="chip" data-cuisine="Chinese">🥢 Chinese</span>
+          <span class="chip" data-cuisine="American">🍔 American</span>
+          <span class="chip" data-cuisine="Thai">🍜 Thai</span>
+        </div>
       </div>
+
+      <!-- Two-option search -->
+      <div class="search-options">
+        <!-- Option A: I'm here right now -->
+        <div class="sopt" id="optA">
+          <div class="sopt-icon">
+            <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>
+            </svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="sopt-label">I'm here right now</div>
+            <div class="sopt-desc">Uses your location to detect the restaurant you're standing in — just confirm and see its top 5 dishes.</div>
+          </div>
+        </div>
+
+        <!-- Option B: A place I know of -->
+        <div class="sopt" id="optB">
+          <div class="sopt-icon">
+            <svg viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>
+            </svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="sopt-label">A place I know of</div>
+            <div class="sopt-desc">Heard about a spot and curious what to order? Type the restaurant name below.</div>
+            <div class="sopt-input-wrap" id="optBInput">
+              <input id="placeInput" type="text" placeholder="e.g. Nobu, Joe's Pizza…" autocomplete="off" enterkeyhint="search">
+              <button id="searchBtn" aria-label="Search">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <p class="hint">Allow location once — then it just works, anywhere you go.</p>
     </div>
   </div>
@@ -396,6 +487,58 @@ $('locateBtn').addEventListener('click', useLocation);
 $('searchBtn').addEventListener('click', ()=>{ const v=$('placeInput').value.trim(); if(v) getDishes({name:v}); });
 $('placeInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const v=e.target.value.trim(); if(v) getDishes({name:v}); }});
 
+/* ---- cuisine chips ---- */
+let selectedCuisine = '';
+document.querySelectorAll('#cuisineChips .chip').forEach(chip => {
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#cuisineChips .chip').forEach(c=>c.classList.remove('sel'));
+    chip.classList.add('sel');
+    selectedCuisine = chip.dataset.cuisine;
+  });
+});
+// default select "Any"
+document.querySelector('#cuisineChips .chip[data-cuisine=""]').classList.add('sel');
+
+/* ---- Option A: I'm here right now ---- */
+$('optA').addEventListener('click', ()=>{
+  $('optA').classList.add('active');
+  $('optB').classList.remove('active');
+  useLocationForDish();
+});
+
+/* ---- Option B: expand on click ---- */
+$('optB').addEventListener('click', ()=>{
+  $('optB').classList.add('active');
+  $('optA').classList.remove('active');
+  $('placeInput').focus();
+});
+
+function useLocationForDish(){
+  show('loading'); $('loadMain').textContent='Detecting where you are…'; runSteps();
+  if(!navigator.geolocation){ const n=prompt("Type the restaurant name:"); return n?getDishes({name:n}):show('home'); }
+  navigator.geolocation.getCurrentPosition(
+    pos=> detectNearestRestaurant(pos.coords.latitude, pos.coords.longitude),
+    err=>{ stopSteps(); const n=prompt("Couldn't get location. Type a restaurant name:"); n?getDishes({name:n}):show('home'); },
+    {enableHighAccuracy:true,timeout:10000,maximumAge:5000});
+}
+
+async function detectNearestRestaurant(lat, lng){
+  $('loadMain').textContent='Identifying where you are…';
+  const cuisineHint = selectedCuisine ? ` Focus on ${selectedCuisine} cuisine.` : '';
+  const p=`You are a local food guide with live web access. The user is standing at GPS latitude ${lat}, longitude ${lng}.
+Use web search to identify the SINGLE restaurant they are most likely standing inside right now — the closest, most likely match to those exact coordinates.${cuisineHint}
+Respond with ONLY raw JSON, no markdown:
+{"found":true,"name":"","cuisine":"","location":"area, city","blurb":"one sentence on why it's popular"}
+If you cannot identify a specific restaurant, return {"found":false,"reason":"..."}.`;
+  try{
+    const r=await askClaude(p); stopSteps();
+    if(!r.found) return fail(r.reason||"Couldn't detect a restaurant at your location. Try Option B to type a name.");
+    // Pre-fill and go straight to dishes
+    $('placeInput').value = r.name;
+    getDishes({name:r.name, area:r.location, predetected:true});
+  }catch(e){ handleErr(e); }
+}
+
 let lastRestaurants=null;
 
 function useLocation(){
@@ -404,7 +547,7 @@ function useLocation(){
   navigator.geolocation.getCurrentPosition(
     pos=> getRestaurants(pos.coords.latitude,pos.coords.longitude),
     err=>{ stopSteps(); const n=prompt("Couldn't get location. Type a restaurant or area:"); n?getDishes({name:n}):show('home'); },
-    {enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+    {enableHighAccuracy:true,timeout:10000,maximumAge:5000});
 }
 
 /* ---------- the Claude call ---------- */
@@ -440,8 +583,9 @@ async function askClaude(promptText){
 
 async function getRestaurants(lat,lng){
   show('loading'); $('loadMain').textContent='Finding great spots near you…'; runSteps();
+  const cuisineHint = selectedCuisine ? ` Focus specifically on ${selectedCuisine} cuisine restaurants.` : '';
   const p=`You are a local food guide with live web access. The user is at GPS latitude ${lat}, longitude ${lng}.
-Use web search to find the FIVE best-reviewed, most popular restaurants within close walking/driving distance of those coordinates right now.
+Use web search to find the FIVE best-reviewed, most popular restaurants within close walking/driving distance of those coordinates right now.${cuisineHint}
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.6","reviews":"1,200","distance":"0.3 mi","blurb":"one short line on why it's loved"}]}
 Give exactly 5, best first. If nothing found return {"found":false,"reason":"..."}.`;
