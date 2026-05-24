@@ -159,6 +159,8 @@
     border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer;box-shadow:var(--shadow-sm);
     transition:transform .15s,box-shadow .2s,border-color .2s;animation:rise .5s cubic-bezier(.2,.7,.2,1) both;}
   .rcard:active{transform:scale(.985);border-color:var(--coral);box-shadow:var(--shadow);}
+  .rcard .ready-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none;opacity:0;transition:opacity .4s;}
+  .rcard.ready .ready-dot{opacity:1;}
   .rrank{flex:none;width:40px;height:40px;border-radius:13px;background:var(--coral-tint);color:var(--coral-deep);
     display:grid;place-items:center;font-family:'Bricolage Grotesque';font-weight:800;font-size:18px;}
   .rcard:first-child .rrank{background:linear-gradient(145deg,var(--coral),var(--coral-deep));color:#fff;}
@@ -356,7 +358,7 @@ function stopSteps(){ clearInterval(stepTimer); }
 function fail(msg){ stopSteps(); $('errMsg').textContent=msg; show('error'); }
 
 /* ---------- navigation ---------- */
-$('brandHome').addEventListener('click', ()=> show('home'));
+$('brandHome').addEventListener('click', ()=>{ Object.keys(dishCache).forEach(k=>delete dishCache[k]); show('home'); });
 $('retryBtn').addEventListener('click', ()=> show('home'));
 $('rBack').addEventListener('click', ()=> show('home'));
 $('dBack').addEventListener('click', ()=> lastRestaurants ? show('restaurants') : show('home'));
@@ -428,10 +430,13 @@ function useLocation(){
     {enableHighAccuracy:true,timeout:10000,maximumAge:5000});
 }
 
+/* ---------- dish cache: keyed by restaurant name ---------- */
+const dishCache = {};
+
 /* ---------- the Claude call ---------- */
-async function askClaude(promptText){
+async function askClaude(promptText, maxTokens=2000){
   const payload = {
-    model:"claude-sonnet-4-6", max_tokens:1600,
+    model:"claude-haiku-4-5-20251001", max_tokens:maxTokens,
     messages:[{role:"user",content:promptText}],
     tools:[{type:"web_search_20250305",name:"web_search"}]
   };
@@ -454,29 +459,58 @@ async function askClaude(promptText){
 async function getRestaurants(lat,lng){
   show('loading'); $('loadMain').textContent='Finding great spots near you…'; runSteps();
   const cuisineHint = selectedCuisine ? ` Focus specifically on ${selectedCuisine} cuisine restaurants.` : '';
+
+  // Step 1: get restaurant list
   const p=`You are a local food guide with live web access. The user is at GPS latitude ${lat}, longitude ${lng}.
 Use web search to find the FIVE best-reviewed, most popular restaurants within close walking/driving distance of those coordinates right now.${cuisineHint}
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.6","reviews":"1,200","distance":"0.3 mi","blurb":"one short line on why it's loved"}]}
 Give exactly 5, best first. If nothing found return {"found":false,"reason":"..."}.`;
+  let r;
   try{
-    const r=await askClaude(p); stopSteps();
+    r=await askClaude(p, 1200); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
     lastRestaurants=r; renderRestaurants(r);
-  }catch(e){ handleErr(e); }
+  }catch(e){ return handleErr(e); }
+
+  // Step 2: prefetch dishes for all 5 restaurants in background (parallel, best-effort)
+  $('loadMain').textContent='Loading dish menus in background…';
+  const area = r.area || '';
+  const prefetchAll = (r.restaurants||[]).slice(0,5).map(async (x) => {
+    if(dishCache[x.name]) return; // already cached
+    try {
+      const dishes = await fetchDishesForRestaurant(x.name, area);
+      if(dishes) dishCache[x.name] = dishes;
+    } catch(e){ console.warn('[prefetch]', x.name, e.message); }
+  });
+  // Fire and forget — don't block the UI
+  Promise.allSettled(prefetchAll);
 }
 
-async function getDishes(opts){
-  show('loading'); $('loadMain').textContent = opts.name?`Looking up ${opts.name}…`:'Loading dishes…'; runSteps();
-  const loc = opts.name?`The restaurant is "${opts.name}"${opts.area?` in ${opts.area}`:''}.`:'';
+async function fetchDishesForRestaurant(name, area){
+  const loc = `The restaurant is "${name}"${area ? ` in ${area}` : ''}.`;
   const p=`You are a food expert with live web access. ${loc}
 Use web search to read recent reviews (Google, Yelp, TripAdvisor, Reddit, blogs) and find the FIVE most popular dishes to order at THIS specific restaurant.
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"restaurant":"exact name","location":"area","cuisine":"","confidence":"high|medium|low","dishes":[{"name":"","why":"one sentence","quote":"short review-style impression","price":"approx, local currency, ~ if estimated"}]}
 Give exactly 5, best first. If you can't identify it return {"found":false,"reason":"..."}.`;
+  const r = await askClaude(p, 1200);
+  if(!r.found) return null;
+  return r;
+}
+
+async function getDishes(opts){
+  // Check cache first — instant if prefetched
+  if(opts.name && dishCache[opts.name]){
+    renderDishes(dishCache[opts.name]);
+    return;
+  }
+  show('loading'); $('loadMain').textContent = opts.name?`Looking up ${opts.name}…`:'Loading dishes…'; runSteps();
   try{
-    const r=await askClaude(p); stopSteps();
-    if(!r.found) return fail(r.reason||"Couldn't pin down that restaurant. Try its full name.");
+    const r = await fetchDishesForRestaurant(opts.name || '', opts.area || '');
+    stopSteps();
+    if(!r) return fail("Couldn't pin down that restaurant. Try its full name.");
+    if(opts.name) dishCache[opts.name] = r;
     renderDishes(r);
   }catch(e){ handleErr(e); }
 }
@@ -502,6 +536,7 @@ function renderRestaurants(r){
   (r.restaurants||[]).slice(0,5).forEach((x,i)=>{
     const el=document.createElement('div');
     el.className='rcard'; el.style.animationDelay=(i*0.06)+'s';
+    el.dataset.rname = x.name;
     const stars = x.rating?`<span class="star"><svg viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>${esc(x.rating)}</span>`:'';
     const rev = x.reviews?`${esc(x.reviews)} reviews`:'';
     const dist = x.distance?esc(x.distance):'';
@@ -510,11 +545,23 @@ function renderRestaurants(r){
         <div class="rname">${esc(x.name||'')}</div>
         <div class="rsub">${stars}${x.cuisine?`<span>${esc(x.cuisine)}</span>`:''}${rev?`<span>${rev}</span>`:''}${dist?`<span>${dist}</span>`:''}</div>
       </div>
+      <div class="ready-dot" title="Dishes ready"></div>
       <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>`;
     el.addEventListener('click', ()=> getDishes({name:x.name, area:r.area}));
     list.appendChild(el);
   });
   show('restaurants');
+
+  // Poll every second to light up green dots as dishes get cached
+  const poll = setInterval(()=>{
+    let allDone = true;
+    document.querySelectorAll('#rList .rcard').forEach(card => {
+      const name = card.dataset.rname;
+      if(dishCache[name]) card.classList.add('ready');
+      else allDone = false;
+    });
+    if(allDone) clearInterval(poll);
+  }, 800);
 }
 
 function renderDishes(r){
