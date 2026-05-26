@@ -695,12 +695,80 @@ async function detectNearestRestaurant(lat, lng){
     }catch(e){ console.warn('[detectNearest] Google Places failed:', e); }
   }
 
-  // Fallback: reverse geocode area then ask user to type name
-  stopSteps();
-  const area = await reverseGeocode(lat, lng) || '';
-  const n = prompt(`Couldn't auto-detect restaurant. You're near ${area||'your location'}. Type the restaurant name:`);
-  if(n){ delete dishCache[n]; getDishes({name:n, area, predetected:true}); }
-  else show('home');
+  // Fallback: use Claude with actual coords to detect nearest restaurant
+  try{
+    $('loadMain').textContent='Identifying your location…';
+    const area = await reverseGeocode(lat, lng) || '';
+    const cuisineHint = selectedCuisine ? ` Prefer cuisines: ${selectedCuisine}.` : '';
+    const p=`You are a local food expert with live web access. GPS coordinates: latitude ${lat}, longitude ${lng} — this is in ${area}.
+Search for restaurants physically at or within 100 metres of these exact coordinates.${cuisineHint}
+Return the single most likely restaurant the user is standing at or just outside right now.
+Respond ONLY with raw JSON:
+{"found":true,"name":"exact restaurant name","cuisine":"type","location":"${area}","blurb":"one sentence"}`;
+    const r = await callClaude(p, 800, true); stopSteps();
+    if(r && r.found && r.name){
+      showNearbyConfirmSingle(r, lat, lng, area);
+    } else {
+      showNearbyTypeUI(area);
+    }
+  }catch(e){
+    stopSteps();
+    showNearbyTypeUI('');
+  }
+}
+
+function showNearbyConfirmSingle(r, lat, lng, area){
+  // Show a confirmation card — "Is this you?"
+  show('loading'); stopSteps();
+  const old = document.getElementById('nearbyConfirm');
+  if(old) old.remove();
+  const div = document.createElement('div');
+  div.id = 'nearbyConfirm';
+  div.style.cssText = 'padding:20px 16px;display:flex;flex-direction:column;gap:12px;';
+  div.innerHTML = `
+    <div style="font-size:13px;color:#6b6057;font-weight:600;text-transform:uppercase;letter-spacing:.8px">Are you here?</div>
+    <button id="ncYes" style="background:#fff;border:1.5px solid #ece2d4;border-radius:14px;padding:16px;text-align:left;cursor:pointer;font-family:inherit;">
+      <div style="font-weight:700;font-size:16px">${r.name}</div>
+      <div style="font-size:12px;color:#6b6057;margin-top:4px">${r.cuisine} · ${r.location}</div>
+      <div style="font-size:12px;color:#6b6057;margin-top:2px">${r.blurb||''}</div>
+    </button>
+    <button id="ncNo" style="background:none;border:1.5px solid #ece2d4;border-radius:14px;padding:12px;color:#6b6057;font-size:13px;cursor:pointer;font-family:inherit;">No — type the name instead</button>
+  `;
+  document.getElementById('app').appendChild(div);
+  document.getElementById('ncYes').addEventListener('click', ()=>{
+    div.remove(); delete dishCache[r.name];
+    getDishes({name:r.name, area:r.location||area, predetected:true});
+  });
+  document.getElementById('ncNo').addEventListener('click', ()=>{ div.remove(); showNearbyTypeUI(area); });
+}
+
+function showNearbyTypeUI(area){
+  // In-app name entry — no ugly browser prompt
+  show('loading'); stopSteps();
+  const old = document.getElementById('nearbyConfirm');
+  if(old) old.remove();
+  const div = document.createElement('div');
+  div.id = 'nearbyConfirm';
+  div.style.cssText = 'padding:20px 16px;display:flex;flex-direction:column;gap:12px;';
+  div.innerHTML = `
+    <div style="font-size:13px;color:#6b6057;font-weight:600;text-transform:uppercase;letter-spacing:.8px">Which restaurant are you at?</div>
+    ${area ? `<div style="font-size:13px;color:#6b6057">Near <b>${area}</b></div>` : ''}
+    <input id="ncInput" type="text" placeholder="e.g. Cheesecake Factory" autocomplete="off"
+      style="border:1.5px solid #ece2d4;border-radius:12px;padding:14px;font-size:15px;font-family:inherit;background:#fff;outline:none;width:100%">
+    <button id="ncGo" style="background:linear-gradient(135deg,#ff4d3d,#e05320);color:#fff;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Show me the best dishes</button>
+    <button id="ncCancel" style="background:none;border:none;color:#6b6057;font-size:13px;cursor:pointer;font-family:inherit;">Cancel</button>
+  `;
+  document.getElementById('app').appendChild(div);
+  const go = ()=>{
+    const n = document.getElementById('ncInput').value.trim();
+    if(!n) return;
+    div.remove(); delete dishCache[n];
+    getDishes({name:n, area, predetected:true});
+  };
+  document.getElementById('ncGo').addEventListener('click', go);
+  document.getElementById('ncInput').addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+  document.getElementById('ncCancel').addEventListener('click', ()=>{ div.remove(); show('home'); });
+  setTimeout(()=>document.getElementById('ncInput')?.focus(), 100);
 }
 
 function showNearbyConfirm(places, lat, lng){
