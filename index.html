@@ -666,21 +666,88 @@ function useLocationForDish(){
 }
 
 async function detectNearestRestaurant(lat, lng){
-  $('loadMain').textContent='Identifying where you are…';
-  const cuisineHint = selectedCuisine ? ` Prefer a match serving any of these cuisines: ${selectedCuisine}.` : '';
-  const p=`You are a local food guide with live web access. The user is standing at GPS latitude ${lat}, longitude ${lng}.
-Use web search to identify the SINGLE restaurant they are most likely standing inside right now — the closest, most likely match to those exact coordinates.${cuisineHint}
-Respond with ONLY raw JSON, no markdown:
-{"found":true,"name":"","cuisine":"","location":"area, city","blurb":"one sentence on why it's popular"}
-If uncertain, return your best guess with found:true — never return found:false unless coordinates are clearly in the middle of nowhere.`;
-  try{
-    const r=await callClaude(p,800,false); stopSteps();
-    if(!r.found) return fail(r.reason||"Couldn't detect a restaurant at your location. Try Option B to type a name.");
-    // Pre-fill and go straight to dishes
-    $('placeInput').value = r.name;
-    delete dishCache[r.name]; // always fresh for live GPS detection
-    getDishes({name:r.name, area:r.location, predetected:true});
-  }catch(e){ handleErr(e); }
+  $('loadMain').textContent='Finding restaurants near you…';
+  const gkey = getGoogleKey();
+
+  if(gkey){
+    // Use Google Places — find actual nearest restaurants by real distance
+    try{
+      const resp = await fetch(`https://places.googleapis.com/v1/places:searchNearby`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Goog-Api-Key':gkey,'X-Goog-FieldMask':'places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.id'},
+        body: JSON.stringify({
+          includedTypes:['restaurant','food','cafe','bar'],
+          maxResultCount:5,
+          rankPreference:'DISTANCE',
+          locationRestriction:{circle:{center:{latitude:lat,longitude:lng},radius:200}}
+        })
+      });
+      if(resp.ok){
+        const d = await resp.json();
+        const places = (d.places||[]);
+        if(places.length > 0){
+          stopSteps();
+          // Show confirmation UI — let user pick the right one
+          showNearbyConfirm(places, lat, lng);
+          return;
+        }
+      }
+    }catch(e){ console.warn('[detectNearest] Google Places failed:', e); }
+  }
+
+  // Fallback: reverse geocode area then ask user to type name
+  stopSteps();
+  const area = await reverseGeocode(lat, lng) || '';
+  const n = prompt(`Couldn't auto-detect restaurant. You're near ${area||'your location'}. Type the restaurant name:`);
+  if(n){ delete dishCache[n]; getDishes({name:n, area, predetected:true}); }
+  else show('home');
+}
+
+function showNearbyConfirm(places, lat, lng){
+  // Build a simple confirmation sheet over the loading screen
+  show('loading');
+  $('loadMain').textContent = 'Are you at one of these?';
+  stopSteps();
+  const stepEl = $('loadSteps');
+  if(stepEl) stepEl.innerHTML = '';
+  const loadEl = document.getElementById('loadingView') || document.querySelector('.stage[data-view="loading"]');
+
+  // Remove any previous confirm UI
+  const old = document.getElementById('nearbyConfirm');
+  if(old) old.remove();
+
+  const div = document.createElement('div');
+  div.id = 'nearbyConfirm';
+  div.style.cssText = 'padding:16px;display:flex;flex-direction:column;gap:10px;';
+
+  places.forEach(p=>{
+    const name = p.displayName?.text || 'Unknown';
+    const addr = (p.formattedAddress||'').split(',')[0];
+    const rating = p.rating ? `⭐ ${p.rating}` : '';
+    const btn = document.createElement('button');
+    btn.style.cssText = 'background:#fff;border:1.5px solid #ece2d4;border-radius:14px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;';
+    btn.innerHTML = `<div style="font-weight:700;font-size:15px">${name}</div><div style="font-size:12px;color:#6b6057;margin-top:3px">${addr} ${rating}</div>`;
+    btn.addEventListener('click', ()=>{
+      div.remove();
+      delete dishCache[name];
+      getDishes({name, area:addr, predetected:true});
+    });
+    div.appendChild(btn);
+  });
+
+  const noneBtn = document.createElement('button');
+  noneBtn.style.cssText = 'background:none;border:none;color:#6b6057;font-size:13px;padding:8px;cursor:pointer;font-family:inherit;';
+  noneBtn.textContent = 'None of these — type a name';
+  noneBtn.addEventListener('click', ()=>{
+    div.remove();
+    const n = prompt('Type the restaurant name:');
+    if(n) getDishes({name:n, predetected:true});
+    else show('home');
+  });
+  div.appendChild(noneBtn);
+
+  // Append to the app container
+  document.getElementById('app').appendChild(div);
 }
 
 let lastRestaurants=null;
