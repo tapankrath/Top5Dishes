@@ -35,10 +35,11 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
+  html{overflow-x:hidden;}
   body{
     font-family:'Plus Jakarta Sans',sans-serif;
     background:var(--bg);color:var(--ink);
-    min-height:100dvh;overflow-x:hidden;position:relative;
+    min-height:100dvh;
   }
   body::before{
     content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -48,7 +49,7 @@
   }
   .wrap{
     position:relative;z-index:1;max-width:540px;margin:0 auto;
-    padding:18px clamp(18px,5vw,26px) 56px;min-height:100dvh;
+    padding:0 clamp(18px,5vw,26px) 56px;min-height:100dvh;
     display:flex;flex-direction:column;
   }
   /* ---- top bar (sticky, compresses on scroll) ---- */
@@ -57,9 +58,10 @@
     background:rgba(253,248,242,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     margin:0 calc(-1*clamp(18px,5vw,26px));padding:0 clamp(18px,5vw,26px);
     transition:padding .25s,box-shadow .25s;
+    /* sticky needs the parent to be the scroll container, not position:relative */
   }
   .topbar-wrap.scrolled{
-    padding-top:4px;padding-bottom:4px;
+    padding-top:2px;padding-bottom:2px;
     box-shadow:0 1px 12px rgba(31,26,23,0.08);
   }
   .topbar{display:flex;align-items:center;justify-content:space-between;
@@ -570,11 +572,11 @@ function fail(msg){ stopSteps(); $('errMsg').textContent=msg; show('error'); }
 $('brandHome').addEventListener('click', ()=>{ Object.keys(dishCache).forEach(k=>delete dishCache[k]); show('home'); });
 $('retryBtn').addEventListener('click', ()=> show('home'));
 $('rBack').addEventListener('click', ()=> show('home'));
-$('dBack').addEventListener('click', ()=> lastRestaurants ? show('restaurants') : show('home'));
+$('dBack').addEventListener('click', ()=> (!dishFromDirectSearch && lastRestaurants) ? show('restaurants') : show('home'));
 $('dAgain').addEventListener('click', ()=>{ $('placeInput').value=''; show('home'); });
 $('locateBtn').addEventListener('click', useLocation);
-$('searchBtn').addEventListener('click', ()=>{ const v=$('placeInput').value.trim(); if(v) getDishes({name:v}); });
-$('placeInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const v=e.target.value.trim(); if(v) getDishes({name:v}); }});
+$('searchBtn').addEventListener('click', ()=>{ const v=$('placeInput').value.trim(); if(v) getDishes({name:v, directSearch:true}); });
+$('placeInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const v=e.target.value.trim(); if(v) getDishes({name:v, directSearch:true}); }});
 
 /* ---- cuisine chips (multi-select) ---- */
 let selectedCuisines = [];           // e.g. ["Italian","Thai"]
@@ -644,6 +646,7 @@ If uncertain, return your best guess with found:true — never return found:fals
 }
 
 let lastRestaurants=null;
+let dishFromDirectSearch=false;
 let lastLocLabel='';
 
 function useLocation(){
@@ -822,6 +825,8 @@ Respond with ONLY raw JSON, no markdown, no explanation:
 
 async function getDishes(opts){
   console.log('[getDishes] called with', opts);
+  // Track if this came from a direct name search (back should go home, not restaurant list)
+  dishFromDirectSearch = opts.directSearch || false;
   // Check cache first — instant if prefetched
   if(opts.name && dishCache[opts.name]){
     console.log('[getDishes] cache hit for', opts.name);
