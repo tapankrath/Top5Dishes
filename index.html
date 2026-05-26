@@ -634,8 +634,8 @@ document.querySelectorAll('#topbarChips .chip').forEach(chip => {
     }
     syncCuisine();
     // If already on restaurants screen, refresh immediately with new cuisine filter
-    if(activeScreen === 'restaurants' && lastRestaurants && lastRestaurants._coords){
-      getRestaurants(lastRestaurants._coords.lat, lastRestaurants._coords.lng);
+    if(activeScreen === 'restaurants' && lastCoords){
+      getRestaurants(lastCoords.lat, lastCoords.lng);
     }
   });
 });
@@ -683,6 +683,7 @@ If uncertain, return your best guess with found:true — never return found:fals
 }
 
 let lastRestaurants=null;
+let lastCoords=null;
 let dishFromDirectSearch=false;
 let lastLocLabel='';
 
@@ -778,6 +779,7 @@ async function reverseGeocode(lat, lng){
 
 
 async function getRestaurants(lat,lng){
+  lastCoords={lat,lng}; // always save so chip refresh works
   show('loading'); $('loadMain').textContent='Finding you…'; runSteps();
   const cuisineHint = selectedCuisine ? ` Only include restaurants serving any of these cuisines: ${selectedCuisine}. Mix them across the five if several are listed.` : '';
 
@@ -825,7 +827,7 @@ Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"${locLabel}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
     r=await callClaude(p,2000,false); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
-    r._coords={lat,lng}; lastRestaurants=r; renderRestaurants(r);
+    lastRestaurants=r; renderRestaurants(r);
   }catch(e){ return handleErr(e); }
 
   // Step 2: prefetch dishes sequentially with gap to avoid rate limits
