@@ -636,7 +636,11 @@ async function callClaude(promptText, maxTokens, useSearch, _retried=0){
 
   let res;
   try { res = await fetch(url, {method:"POST", headers, body:JSON.stringify(payload)}); }
-  catch(fetchErr){ const e=new Error("Failed to fetch"); e.name="TypeError"; throw e; }
+  catch(fetchErr){
+    console.error("[callClaude] fetch threw:", fetchErr);
+    throw new Error("Network error: " + (fetchErr.message || String(fetchErr)));
+  }
+  console.log("[callClaude] HTTP status:", res.status);
   if(res.status===401||res.status===403) throw new Error("auth");
   if(res.status===429){
     const ra = parseInt(res.headers.get('retry-after')||'', 10);
@@ -644,16 +648,21 @@ async function callClaude(promptText, maxTokens, useSearch, _retried=0){
     const attempt = typeof _retried === 'number' ? _retried : 0;
     if(attempt < 3){
       if($('loadStep')) $('loadStep').textContent = `Rate limit — retrying in ${Math.round(waitMs/1000)}s… (${attempt+1}/3)`;
-      console.warn("[route] 429, attempt", attempt+1, "waiting", waitMs, "ms");
+      console.warn("[callClaude] 429, attempt", attempt+1, "waiting", waitMs, "ms");
       await new Promise(r=>setTimeout(r, waitMs));
       return callClaude(promptText, maxTokens, useSearch, attempt+1);
     }
   }
-  if(!res.ok){ const body=await res.text().catch(()=>""); console.error("[Worker]",res.status,body); throw new Error("net:"+res.status); }
-  const data=await res.json();
-  const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
-  if(!text){ console.error("[Worker] no text block in response", data); throw new SyntaxError("empty response"); }
-  const j=text.replace(/```json|```/g,"").trim().replace(/^[^{[]*/,"").replace(/[^}\]]*$/,"");
+  if(!res.ok){
+    const body = await res.text().catch(()=>"");
+    console.error("[callClaude] error response:", res.status, body);
+    throw new Error("HTTP " + res.status + (body ? ": " + body.slice(0,300) : ""));
+  }
+  const data = await res.json();
+  console.log("[callClaude] response types:", (data.content||[]).map(b=>b.type));
+  const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  if(!text){ console.error("[callClaude] no text block:", JSON.stringify(data).slice(0,300)); throw new SyntaxError("empty response from API"); }
+  const j = text.replace(/```json|```/g,"").trim().replace(/^[^{[]*/,"").replace(/[^}\]]*$/,"");
   return JSON.parse(j);
 }
 
@@ -802,12 +811,7 @@ function handleErr(e){
     fail("Rate limit hit on your Anthropic account. Wait ~30s and retry.");
   } else {
     let hint = e.message||String(e);
-    if(e.name==="TypeError"||e.message==="Failed to fetch"){
-      hint = getAnthropicKey()
-        ? "Network error reaching Anthropic. Check your API key in ⚙ Settings, or check your internet connection."
-        : "No API key set — tap ⚙ to add your Anthropic key (starts with sk-ant-).";
-    }
-    fail("Something went wrong: " + hint);
+    fail("Error: " + hint);
   }
 }
 
