@@ -669,30 +669,39 @@ async function detectNearestRestaurant(lat, lng){
   $('loadMain').textContent='Finding restaurants near you…';
   const gkey = getGoogleKey();
 
+  console.log('[detectNearest] gkey present:', !!gkey, 'lat:', lat, 'lng:', lng);
   if(gkey){
-    // Use Google Places — find actual nearest restaurants by real distance
     try{
-      const resp = await fetch(`https://places.googleapis.com/v1/places:searchNearby`,{
+      const body = {
+        includedTypes:['restaurant','food','cafe','bar'],
+        maxResultCount:10,
+        rankPreference:'DISTANCE',
+        locationRestriction:{circle:{center:{latitude:lat,longitude:lng},radius:500}}
+      };
+      console.log('[detectNearest] calling searchNearby with:', JSON.stringify(body));
+      const resp = await fetch('https://places.googleapis.com/v1/places:searchNearby',{
         method:'POST',
-        headers:{'Content-Type':'application/json','X-Goog-Api-Key':gkey,'X-Goog-FieldMask':'places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.id'},
-        body: JSON.stringify({
-          includedTypes:['restaurant','food','cafe','bar'],
-          maxResultCount:5,
-          rankPreference:'DISTANCE',
-          locationRestriction:{circle:{center:{latitude:lat,longitude:lng},radius:200}}
-        })
+        headers:{
+          'Content-Type':'application/json',
+          'X-Goog-Api-Key':gkey,
+          'X-Goog-FieldMask':'places.displayName,places.formattedAddress,places.primaryTypeDisplayName,places.rating,places.id'
+        },
+        body: JSON.stringify(body)
       });
-      if(resp.ok){
-        const d = await resp.json();
-        const places = (d.places||[]);
-        if(places.length > 0){
-          stopSteps();
-          // Show confirmation UI — let user pick the right one
-          showNearbyConfirm(places, lat, lng);
-          return;
-        }
+      console.log('[detectNearest] response status:', resp.status);
+      const d = await resp.json();
+      console.log('[detectNearest] response body:', JSON.stringify(d).slice(0,500));
+      const places = (d.places||[]);
+      if(places.length > 0){
+        stopSteps();
+        showNearbyConfirm(places, lat, lng);
+        return;
+      } else {
+        console.warn('[detectNearest] no places returned, falling through');
       }
-    }catch(e){ console.warn('[detectNearest] Google Places failed:', e); }
+    }catch(e){ console.error('[detectNearest] Google Places error:', e); }
+  } else {
+    console.warn('[detectNearest] no Google key found');
   }
 
   // Fallback: use Claude with actual coords to detect nearest restaurant
