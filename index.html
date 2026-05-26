@@ -662,7 +662,7 @@ function useLocationForDish(){
   navigator.geolocation.getCurrentPosition(
     pos=> detectNearestRestaurant(pos.coords.latitude, pos.coords.longitude),
     err=>{ stopSteps(); const n=prompt("Couldn't get location. Type a restaurant name:"); n?getDishes({name:n}):show('home'); },
-    {enableHighAccuracy:true,timeout:10000,maximumAge:5000});
+    {enableHighAccuracy:true,timeout:10000,maximumAge:0});
 }
 
 async function detectNearestRestaurant(lat, lng){
@@ -678,6 +678,7 @@ If uncertain, return your best guess with found:true — never return found:fals
     if(!r.found) return fail(r.reason||"Couldn't detect a restaurant at your location. Try Option B to type a name.");
     // Pre-fill and go straight to dishes
     $('placeInput').value = r.name;
+    delete dishCache[r.name]; // always fresh for live GPS detection
     getDishes({name:r.name, area:r.location, predetected:true});
   }catch(e){ handleErr(e); }
 }
@@ -866,8 +867,8 @@ async function getDishes(opts){
   console.log('[getDishes] called with', opts);
   // Track if this came from a direct name search (back should go home, not restaurant list)
   dishFromDirectSearch = opts.directSearch || false;
-  // Check cache first — instant if prefetched
-  if(opts.name && dishCache[opts.name]){
+  // Skip cache if this is a live GPS detection — always fetch fresh
+  if(opts.name && dishCache[opts.name] && !opts.predetected){
     console.log('[getDishes] cache hit for', opts.name);
     renderDishes(dishCache[opts.name]);
     return;
