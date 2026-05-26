@@ -797,17 +797,17 @@ function handleErr(e){
   if(e.name==="NoKey"){
     fail(e.message);
   } else if(e.message==="auth"){
-    fail("API key rejected — check the ANTHROPIC_API_KEY secret in your Cloudflare Worker, or tap ⚙ to update it.");
+    fail("API key rejected — double-check the key in ⚙ Settings (it should start with sk-ant-).");
   } else if(e.message==="net:429"){
-    fail("Rate limit reached on your Anthropic account (tokens-per-minute cap). Wait ~30s and retry — this limit rises automatically as your account usage tier increases.");
+    fail("Rate limit hit on your Anthropic account. Wait ~30s and retry.");
   } else {
     let hint = e.message||String(e);
     if(e.name==="TypeError"||e.message==="Failed to fetch"){
       hint = getAnthropicKey()
-        ? "Network error calling Anthropic directly. This may be a CORS issue — try using the Cloudflare Worker instead, or check your API key."
-        : "No API key set. Tap ⚙ to add your Anthropic key.";
+        ? "Network error reaching Anthropic. Check your API key in ⚙ Settings, or check your internet connection."
+        : "No API key set — tap ⚙ to add your Anthropic key (starts with sk-ant-).";
     }
-    fail("Something went wrong: " + hint + " (check browser console for details)");
+    fail("Something went wrong: " + hint);
   }
 }
 
