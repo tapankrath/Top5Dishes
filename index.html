@@ -504,7 +504,7 @@ async function placesSearchText(query,lat,lng,radius){
     },
     body:JSON.stringify({
       textQuery:query,
-      maxResultCount:8,
+      maxResultCount:20,
       locationBias:{circle:{center:{latitude:lat,longitude:lng},radius:radius}}
     })
   });
