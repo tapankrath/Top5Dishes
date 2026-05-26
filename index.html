@@ -34,13 +34,8 @@
     --shadow-coral:0 14px 32px -10px rgba(255,77,61,0.45);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{height:auto;margin:0;}
-  html{min-height:100%;}
-  body{
-    font-family:'Plus Jakarta Sans',sans-serif;
-    background:var(--bg);color:var(--ink);
-    min-height:100dvh;
-  }
+  html,body{height:100%;margin:0;padding:0;overflow:hidden;}
+  body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);}
   body::before{
     content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     background:
@@ -48,7 +43,14 @@
       radial-gradient(ellipse 55% 40% at 95% 100%, rgba(242,169,59,0.10), transparent 55%);
   }
 
-  /* ── sticky topbar — brand row + cuisine chips, always visible ── */
+  /* ── THE scroll container — fills viewport, scrolls internally ── */
+  #app{
+    height:100%;height:100dvh;
+    overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* ── sticky topbar — sticks inside #app ── */
   .topbar-wrap{
     position:sticky;top:0;z-index:200;
     background:rgba(253,248,242,0.96);
@@ -256,6 +258,7 @@
 </style>
 </head>
 <body>
+<div id="app">
 <!-- sticky topbar — outside .wrap so position:relative doesn't trap it -->
 <div class="topbar-wrap" id="topbarWrap">
   <div class="topbar-inner">
@@ -430,7 +433,7 @@ const $ = id => document.getElementById(id);
 
 /* sticky topbar — always compact, no scroll listener needed */
 const views = {home:$('home'),loading:$('loading'),error:$('error'),restaurants:$('restaurants'),dishes:$('dishes')};
-function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==v); window.scrollTo(0,0); }
+function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==v); document.getElementById("app").scrollTo(0,0); }
 
 /* ========================================================
    BACKEND PROXY  —  set this to your Cloudflare Worker URL.
@@ -1017,5 +1020,6 @@ function surpriseMe(){
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 </script>
+</div><!-- /#app -->
 </body>
 </html>
