@@ -356,7 +356,20 @@
         <div class="sec-meta" id="dMeta"></div>
       </div>
     </div>
+    <div class="diet-row" id="dietRow">
+      <span class="dchip sel" data-diet="">All</span>
+      <span class="dchip" data-diet="veg">🥦 Veg</span>
+      <span class="dchip" data-diet="vegan">🌱 Vegan</span>
+      <span class="dchip" data-diet="gf">🌾 GF</span>
+      <span class="dchip" data-diet="halal">☪ Halal</span>
+    </div>
     <div class="dlist" id="dList"></div>
+    <button class="surprise-btn" onclick="surpriseMe()">🎲 Surprise me</button>
+    <div class="surprise-card" id="surpriseCard">
+      <div class="surprise-label">Tonight, order this</div>
+      <div class="surprise-dish" id="surpriseDish"></div>
+      <div class="surprise-why" id="surpriseWhy"></div>
+    </div>
     <div class="disclaimer" id="dDisclaimer"></div>
     <button class="again" id="dAgain">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7M3 12v5h5"/></svg>
@@ -666,29 +679,34 @@ async function callClaude(promptText, maxTokens, useSearch, _retried=0){
   return JSON.parse(j);
 }
 
-/* ── reverse geocode — BigDataCloud first (handles CDPs/unincorporated areas), Nominatim fallback ── */
+/* ── reverse geocode — Nominatim primary (zoom=12 for neighbourhood precision), BigDataCloud fallback ── */
 async function reverseGeocode(lat, lng){
+  // Nominatim at zoom=12 gives suburb/neighbourhood level which is more accurate for unincorporated areas
   try{
-    const res=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
-    if(res.ok){
-      const d=await res.json();
-      const city=d.locality||d.localityInfo?.administrative?.find(a=>a.adminLevel>=8)?.name||d.city;
-      const state=d.principalSubdivision||'';
-      if(city&&city!==state) return `${city}, ${state}`.trim();
-    }
-  }catch(e){ console.warn('[geocode bigdatacloud]',e); }
-
-  try{
-    const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=10`,
+    const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=12&addressdetails=1`,
       {headers:{'Accept-Language':'en'}});
     if(res.ok){
       const d=await res.json();
       const a=d.address||{};
-      const city=a.city||a.town||a.village||a.suburb||a.county;
-      const state=a.state;
-      if(city) return `${city}, ${state}`;
+      // Prefer neighbourhood/suburb over city for accuracy in CDPs & unincorporated communities
+      const place = a.neighbourhood||a.suburb||a.village||a.town||a.city||a.county;
+      const state = a.state_code||a.state||'';
+      console.log('[geocode nominatim]', JSON.stringify(a));
+      if(place) return `${place}, ${state}`.trim().replace(/, $/, '');
     }
   }catch(e){ console.warn('[geocode nominatim]',e); }
+
+  // BigDataCloud fallback
+  try{
+    const res=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
+    if(res.ok){
+      const d=await res.json();
+      console.log('[geocode bigdatacloud]', JSON.stringify({locality:d.locality,city:d.city,sub:d.principalSubdivision}));
+      const city=d.locality||d.city;
+      const state=d.principalSubdivisionCode||d.principalSubdivision||'';
+      if(city&&city!==state) return `${city}, ${state}`.trim();
+    }
+  }catch(e){ console.warn('[geocode bigdatacloud]',e); }
 
   return null;
 }
