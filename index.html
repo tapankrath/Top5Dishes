@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fork&amp;Find">
 <meta name="theme-color" content="#ff4d3d">
-<title>Fork&amp;Find — Top 5 Dishes Near You</title>
+<title>Fork&amp;Find — Top 10 Restaurants Near You</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -300,7 +300,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>
         </svg>
-        Find great restaurants near me
+        Find top 10 restaurants near me
       </button>
 
       <!-- Two-option search -->
@@ -366,7 +366,7 @@
     <div class="sec-head">
       <div class="back" id="rBack"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
       <div>
-        <div class="sec-eyebrow">Top spots near you</div>
+        <div class="sec-eyebrow">Top 10 near you · best reviewed</div>
         <div class="sec-title" id="rArea">Restaurants nearby</div>
       </div>
     </div>
@@ -560,7 +560,7 @@ async function fetchNearbyRestaurants(lat,lng,cuisineFilter){
     return ad-bd;
   });
 
-  return enriched.slice(0,5);
+  return enriched.slice(0,10);
 }
 
 /* ---------- loading copy ---------- */
@@ -805,7 +805,7 @@ async function getRestaurants(lat,lng){
             catch(e){ console.warn('[prefetch]',x.name,e.message); }
           }
         }
-        prefetchPlaces((r.restaurants||[]).slice(0,5));
+        prefetchPlaces((r.restaurants||[]).slice(0,10));
         return;
       }
     }
@@ -813,12 +813,12 @@ async function getRestaurants(lat,lng){
     // Step 1b: fall back to Claude if no Google key or Places returned nothing
     $('loadMain').textContent = `Asking Claude about spots near ${locLabel}…`;
     const p=`You are a local food expert. The user is in ${locLabel} (coordinates: ${coordStr}).
-List FIVE of the best, most popular restaurants in ${locLabel}.${cuisineHint ? ` Focus on: ${cuisineHint}.` : ''}
+List TEN of the best, most popular, highly-reviewed restaurants near ${locLabel}.${cuisineHint ? ` Focus on: ${cuisineHint}.` : ''} Prioritise places with strong local reviews and high ratings (4.0+). Mix cuisines unless filtered.
 Use your knowledge of ${locLabel} to give accurate, well-known local favourites.
-RULES: Return exactly 5. NEVER return found:false. Ratings/distance can be approximate.
+RULES: Return exactly 10. NEVER return found:false. Ratings/distance can be approximate.
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"${locLabel}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
-    r=await callClaude(p,1200,false); stopSteps();
+    r=await callClaude(p,2000,false); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
     lastRestaurants=r; renderRestaurants(r);
   }catch(e){ return handleErr(e); }
@@ -836,7 +836,7 @@ Respond with ONLY raw JSON, no markdown:
       }catch(e){ console.warn('[prefetch]', x.name, e.message); }
     }
   }
-  prefetchSequential((r.restaurants||[]).slice(0,5)); // fire and forget
+  prefetchSequential((r.restaurants||[]).slice(0,10)); // fire and forget
 }
 
 async function fetchDishesForRestaurant(name, area){
@@ -902,7 +902,7 @@ function handleErr(e){
 function renderRestaurants(r){
   $('rArea').textContent = lastLocLabel || r.area || 'Restaurants nearby';
   const list=$('rList'); list.innerHTML='';
-  (r.restaurants||[]).slice(0,5).forEach((x,i)=>{
+  (r.restaurants||[]).slice(0,10).forEach((x,i)=>{
     const el=document.createElement('div');
     el.className='rcard'; el.style.animationDelay=(i*0.06)+'s';
     el.dataset.rname = x.name;
