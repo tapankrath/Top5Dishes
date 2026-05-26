@@ -64,13 +64,11 @@
   }
   .topbar-chips{
     max-width:540px;margin:0 auto;
-    padding:4px clamp(14px,4vw,24px) 6px;
-    display:flex;gap:5px;overflow-x:auto;
-    scrollbar-width:none;-ms-overflow-style:none;
+    padding:4px clamp(14px,4vw,24px) 7px;
+    display:flex;flex-wrap:wrap;gap:5px;
   }
-  .topbar-chips::-webkit-scrollbar{display:none;}
-  .topbar-chips .chip{white-space:nowrap;flex-shrink:0;
-    font-size:11.5px;padding:4px 10px;border-radius:16px;}
+  .topbar-chips .chip{white-space:nowrap;
+    font-size:11px;padding:4px 10px;border-radius:16px;}
   .brand{display:flex;align-items:center;gap:7px;cursor:pointer;}
   .logo{width:28px;height:28px;border-radius:8px;flex:none;
     background:linear-gradient(145deg,var(--coral),var(--coral-deep));
