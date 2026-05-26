@@ -432,7 +432,8 @@ const $ = id => document.getElementById(id);
 
 /* sticky topbar — always compact, no scroll listener needed */
 const views = {home:$('home'),loading:$('loading'),error:$('error'),restaurants:$('restaurants'),dishes:$('dishes')};
-function show(v){ for(const k in views) views[k].classList.toggle('hidden', k!==v); document.getElementById("app").scrollTo(0,0); }
+let activeScreen = 'home';
+function show(v){ activeScreen=v; for(const k in views) views[k].classList.toggle('hidden', k!==v); document.getElementById("app").scrollTo(0,0); }
 
 /* ========================================================
    BACKEND PROXY  —  set this to your Cloudflare Worker URL.
@@ -632,6 +633,10 @@ document.querySelectorAll('#topbarChips .chip').forEach(chip => {
       allChip.classList.toggle('sel', selectedCuisines.length===0);
     }
     syncCuisine();
+    // If already on restaurants screen, refresh immediately with new cuisine filter
+    if(activeScreen === 'restaurants' && lastRestaurants && lastRestaurants._coords){
+      getRestaurants(lastRestaurants._coords.lat, lastRestaurants._coords.lng);
+    }
   });
 });
 // default select "All"
@@ -820,7 +825,7 @@ Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"${locLabel}","restaurants":[{"name":"","cuisine":"","rating":"4.5","reviews":"800+","distance":"~0.3 mi","blurb":"one short line on why it's loved"}]}`;
     r=await callClaude(p,2000,false); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
-    lastRestaurants=r; renderRestaurants(r);
+    r._coords={lat,lng}; lastRestaurants=r; renderRestaurants(r);
   }catch(e){ return handleErr(e); }
 
   // Step 2: prefetch dishes sequentially with gap to avoid rate limits
