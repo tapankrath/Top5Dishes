@@ -25,7 +25,7 @@
 <meta name="theme-color" content="#ff4d3d">
 <meta name="msapplication-TileColor" content="#ff4d3d">
 <meta name="msapplication-TileImage" content="icons/icon-144x144.png">
-<title>Fork&amp;Find — Top 5 Dishes Near You</title>
+<title>Fork&amp;Find — Top 10 Dishes Near You</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -231,7 +231,7 @@
   <div class="stage" id="home">
     <div class="hero">
       <h1>Eat the <em>best</em> dish,<br>wherever you are.</h1>
-      <p class="sub">Find the top-rated restaurants around you — then the 5 dishes people rave about at each one.</p>
+      <p class="sub">Find the top-rated restaurants around you — then the 10 dishes people rave about at each one.</p>
     </div>
     <div style="margin-top:30px;">
       <!-- Cuisine filter -->
@@ -322,6 +322,19 @@
         <div class="sec-title" id="rArea">Restaurants nearby</div>
       </div>
     </div>
+    <!-- Cuisine filter on page 2 -->
+    <div class="cuisine-row" style="margin-top:14px;">
+      <div class="cuisine-chips" id="rCuisineChips">
+        <span class="chip sel" data-cuisine="">🍽 All</span>
+        <span class="chip" data-cuisine="Italian">🍝 Italian</span>
+        <span class="chip" data-cuisine="Indian">🍛 Indian</span>
+        <span class="chip" data-cuisine="Japanese">🍱 Japanese</span>
+        <span class="chip" data-cuisine="Mexican">🌮 Mexican</span>
+        <span class="chip" data-cuisine="Chinese">🥢 Chinese</span>
+        <span class="chip" data-cuisine="American">🍔 American</span>
+        <span class="chip" data-cuisine="Thai">🍜 Thai</span>
+      </div>
+    </div>
     <div class="rlist" id="rList"></div>
     <div class="disclaimer">Ranked from recent online reviews · Tap one to see its best dishes</div>
   </div>
@@ -331,7 +344,7 @@
     <div class="sec-head">
       <div class="back" id="dBack"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></div>
       <div>
-        <div class="sec-eyebrow">Top 5 dishes</div>
+        <div class="sec-eyebrow">Top 10 dishes</div>
         <div class="sec-title" id="dPlace">Restaurant</div>
         <div class="sec-meta" id="dMeta"></div>
       </div>
@@ -379,7 +392,7 @@ $('locateBtn').addEventListener('click', useLocation);
 $('searchBtn').addEventListener('click', ()=>{ const v=$('placeInput').value.trim(); if(v) getDishes({name:v}); });
 $('placeInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const v=e.target.value.trim(); if(v) getDishes({name:v}); }});
 
-/* ---- cuisine chips ---- */
+/* ---- cuisine chips (page 1) ---- */
 let selectedCuisine = '';
 document.querySelectorAll('#cuisineChips .chip').forEach(chip => {
   chip.addEventListener('click', ()=>{
@@ -388,8 +401,30 @@ document.querySelectorAll('#cuisineChips .chip').forEach(chip => {
     selectedCuisine = chip.dataset.cuisine;
   });
 });
-// default select "Any"
+// default select "All"
 document.querySelector('#cuisineChips .chip[data-cuisine=""]').classList.add('sel');
+
+/* ---- cuisine chips (page 2) — re-runs search on change ---- */
+function syncPage2Chips(){
+  // Mirror the current selectedCuisine into page-2 chips
+  document.querySelectorAll('#rCuisineChips .chip').forEach(c=>{
+    c.classList.toggle('sel', c.dataset.cuisine === selectedCuisine);
+  });
+}
+document.querySelectorAll('#rCuisineChips .chip').forEach(chip => {
+  chip.addEventListener('click', ()=>{
+    const newCuisine = chip.dataset.cuisine;
+    if(newCuisine === selectedCuisine) return; // nothing changed
+    // Update both page-1 and page-2 chips
+    selectedCuisine = newCuisine;
+    document.querySelectorAll('#cuisineChips .chip').forEach(c=>c.classList.toggle('sel', c.dataset.cuisine===newCuisine));
+    document.querySelectorAll('#rCuisineChips .chip').forEach(c=>c.classList.toggle('sel', c.dataset.cuisine===newCuisine));
+    // Re-run the restaurant search with the new cuisine filter
+    if(lastLocation){
+      getRestaurants(lastLocation.lat, lastLocation.lng);
+    }
+  });
+});
 
 /* ---- Option A: I'm here right now ---- */
 $('optA').addEventListener('click', ()=>{
@@ -432,6 +467,7 @@ If you cannot identify a specific restaurant, return {"found":false,"reason":"..
 }
 
 let lastRestaurants=null;
+let lastLocation=null; // {lat, lng} stored so page-2 cuisine filter can re-run
 
 function useLocation(){
   show('loading'); $('loadMain').textContent='Finding you…'; runSteps();
@@ -466,14 +502,15 @@ async function askClaude(promptText){
 }
 
 async function getRestaurants(lat,lng){
+  lastLocation = {lat, lng}; // store for page-2 cuisine re-run
   show('loading'); $('loadMain').textContent='Finding great spots near you…'; runSteps();
   const cuisineHint = selectedCuisine ? ` Focus specifically on ${selectedCuisine} cuisine restaurants.` : '';
   const p=`You are a local food guide with live web access. The user is at GPS latitude ${lat}, longitude ${lng}.
-Use web search to find the FIVE best-reviewed, most popular restaurants within close walking/driving distance of those coordinates right now.${cuisineHint}
+Use web search to find the TEN best-reviewed, most popular restaurants within close walking/driving distance of those coordinates right now.${cuisineHint}
 Also search for any Beli app mentions, rankings or city guides for these restaurants.
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.6","reviews":"1,200","distance":"0.3 mi","blurb":"one short line on why it's loved","lat":40.7580,"lng":-73.9855,"beli_score":"8.9","beli_note":"#2 Italian in NYC on Beli"}]}
-Give exactly 5 restaurants, best first. Include lat/lng coordinates for each. beli_score and beli_note are optional — only include if found. If nothing found return {"found":false,"reason":"..."}.`;
+Give exactly 10 restaurants, best first. Include lat/lng coordinates for each. beli_score and beli_note are optional — only include if found. If nothing found return {"found":false,"reason":"..."}.`;
   try{
     const r=await askClaude(p); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
@@ -485,10 +522,10 @@ async function getDishes(opts){
   show('loading'); $('loadMain').textContent = opts.name?`Looking up ${opts.name}…`:'Loading dishes…'; runSteps();
   const loc = opts.name?`The restaurant is "${opts.name}"${opts.area?` in ${opts.area}`:''}.`:'';
   const p=`You are a food expert with live web access. ${loc}
-Use web search to read recent reviews (Google, Yelp, TripAdvisor, Reddit, blogs) and find the FIVE most popular dishes to order at THIS specific restaurant.
+Use web search to read recent reviews (Google, Yelp, TripAdvisor, Reddit, blogs) and find the TEN most popular dishes to order at THIS specific restaurant.
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"restaurant":"exact name","location":"area","cuisine":"","confidence":"high|medium|low","dishes":[{"name":"","why":"one sentence","quote":"short review-style impression","price":"approx, local currency, ~ if estimated","beli_mentions":"e.g. #1 dish on Beli, or omit if not found"}]}
-Give exactly 5, best first. If you can't identify it return {"found":false,"reason":"..."}.`;
+Give exactly 10, best first. If you can't identify it return {"found":false,"reason":"..."}.`;
   try{
     const r=await askClaude(p); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't pin down that restaurant. Try its full name.");
@@ -511,8 +548,9 @@ function handleErr(e){
 /* ---------- render ---------- */
 function renderRestaurants(r){
   $('rArea').textContent = r.area || 'Restaurants nearby';
+  syncPage2Chips(); // mirror current cuisine selection onto page-2 chips
   const list=$('rList'); list.innerHTML='';
-  (r.restaurants||[]).slice(0,5).forEach((x,i)=>{
+  (r.restaurants||[]).slice(0,10).forEach((x,i)=>{
     const el=document.createElement('div');
     el.className='rcard'; el.style.animationDelay=(i*0.06)+'s';
     const stars = x.rating?`<span class="star"><svg viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>${esc(x.rating)}</span>`:'';
@@ -560,7 +598,7 @@ function renderDishes(r){
   $('dPlace').textContent=r.restaurant||'This restaurant';
   $('dMeta').textContent=[r.cuisine,r.location].filter(Boolean).join(' · ');
   const list=$('dList'); list.innerHTML='';
-  (r.dishes||[]).slice(0,5).forEach((d,i)=>{
+  (r.dishes||[]).slice(0,10).forEach((d,i)=>{
     const el=document.createElement('div');
     el.className='dish'; el.style.animationDelay=(i*0.07)+'s';
     el.innerHTML=`<div class="drank">${i+1}</div>
