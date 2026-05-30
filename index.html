@@ -152,6 +152,14 @@
   .sec-eyebrow{color:var(--coral);font-size:11.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;}
   .sec-title{font-family:'Bricolage Grotesque';font-weight:700;font-size:22px;line-height:1.1;letter-spacing:-0.4px;margin-top:3px;}
   .sec-meta{color:var(--ink-faint);font-size:13px;margin-top:3px;}
+  /* ---- beli badge ---- */
+  .beli-badge{display:inline-flex;align-items:center;gap:4px;background:#1a1a2e;color:#e8c97a;
+    border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;letter-spacing:.2px;margin-top:5px;}
+  .beli-badge span{color:#fff;font-weight:500;font-size:10.5px;}
+  .beli-btn{display:inline-flex;align-items:center;gap:5px;background:#1a1a2e;color:#e8c97a;
+    border:none;border-radius:10px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;
+    text-decoration:none;letter-spacing:.2px;white-space:nowrap;flex-shrink:0;}
+  .beli-btn:active{opacity:.8;}
   /* ---- map thumbnail ---- */
   .rmap{width:72px;height:72px;border-radius:12px;overflow:hidden;flex-shrink:0;border:1px solid var(--line);
     background:var(--bg-tint);cursor:pointer;position:relative;}
@@ -460,9 +468,10 @@ async function getRestaurants(lat,lng){
   const cuisineHint = selectedCuisine ? ` Focus specifically on ${selectedCuisine} cuisine restaurants.` : '';
   const p=`You are a local food guide with live web access. The user is at GPS latitude ${lat}, longitude ${lng}.
 Use web search to find the FIVE best-reviewed, most popular restaurants within close walking/driving distance of those coordinates right now.${cuisineHint}
+Also search for any Beli app mentions, rankings or city guides for these restaurants.
 Respond with ONLY raw JSON, no markdown:
-{"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.6","reviews":"1,200","distance":"0.3 mi","blurb":"one short line on why it's loved","lat":40.7580,"lng":-73.9855}]}
-Give exactly 5 restaurants, best first. Include lat/lng coordinates for each. If nothing found return {"found":false,"reason":"..."}.`;
+{"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.6","reviews":"1,200","distance":"0.3 mi","blurb":"one short line on why it's loved","lat":40.7580,"lng":-73.9855,"beli_score":"8.9","beli_note":"#2 Italian in NYC on Beli"}]}
+Give exactly 5 restaurants, best first. Include lat/lng coordinates for each. beli_score and beli_note are optional — only include if found. If nothing found return {"found":false,"reason":"..."}.`;
   try{
     const r=await askClaude(p); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
@@ -476,7 +485,7 @@ async function getDishes(opts){
   const p=`You are a food expert with live web access. ${loc}
 Use web search to read recent reviews (Google, Yelp, TripAdvisor, Reddit, blogs) and find the FIVE most popular dishes to order at THIS specific restaurant.
 Respond with ONLY raw JSON, no markdown:
-{"found":true,"restaurant":"exact name","location":"area","cuisine":"","confidence":"high|medium|low","dishes":[{"name":"","why":"one sentence","quote":"short review-style impression","price":"approx, local currency, ~ if estimated"}]}
+{"found":true,"restaurant":"exact name","location":"area","cuisine":"","confidence":"high|medium|low","dishes":[{"name":"","why":"one sentence","quote":"short review-style impression","price":"approx, local currency, ~ if estimated","beli_mentions":"e.g. #1 dish on Beli, or omit if not found"}]}
 Give exactly 5, best first. If you can't identify it return {"found":false,"reason":"..."}.`;
   try{
     const r=await askClaude(p); stopSteps();
@@ -531,8 +540,12 @@ function renderRestaurants(r){
         <div class="rname">${esc(x.name||'')}</div>
         <div class="rsub">${stars}${x.cuisine?`<span>${esc(x.cuisine)}</span>`:''}${rev?`<span>${rev}</span>`:''}${dist?`<span>${dist}</span>`:''}</div>
         <div class="rblurb">${esc(x.blurb||'')}</div>
+        ${x.beli_score||x.beli_note ? `<div class="beli-badge">🍽 Beli ${x.beli_score?esc(x.beli_score):''} <span>${esc(x.beli_note||'')}</span></div>` : ''}
       </div>
-      <div class="rmap" title="Open in Maps">${mapHtml}</div>`;
+      <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-end;flex-shrink:0;">
+        <div class="rmap" title="Open in Maps">${mapHtml}</div>
+        <a class="beli-btn" href="https://beliapp.com/search?q=${encodeURIComponent(x.name||'')}" target="_blank" onclick="event.stopPropagation()">🍽 Beli</a>
+      </div>`;
     // map click → Google Maps, card click → dishes
     el.querySelector('.rmap').addEventListener('click', e=>{ e.stopPropagation(); window.open(mapsUrl,'_blank'); });
     el.addEventListener('click', ()=> getDishes({name:x.name, area:r.area}));
