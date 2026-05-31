@@ -132,11 +132,11 @@
   .sopt-input-wrap button:active{background:var(--bg-tint);}
   .sopt-input-wrap button svg{width:18px;height:18px;stroke:var(--coral);}
   /* ---- cuisine filter row ---- */
-  .cuisine-row{margin-bottom:14px;position:relative;z-index:2;}
-  .cuisine-chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .cuisine-row{margin-bottom:10px;position:relative;z-index:2;}
+  .cuisine-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
   .chip{background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);border-radius:20px;
-    padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;
-    display:inline-flex;align-items:center;gap:4px;}
+    padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;
+    display:inline-flex;align-items:center;gap:3px;line-height:1.2;}
   .chip:active{transform:scale(.95);}
   .chip.sel{background:var(--coral-tint);border-color:var(--coral);color:var(--coral-deep);}
   .hint{text-align:center;color:var(--ink-faint);font-size:12.5px;margin-top:16px;}
@@ -245,6 +245,7 @@
           <span class="chip" data-cuisine="Chinese">🥢 Chinese</span>
           <span class="chip" data-cuisine="American">🍔 American</span>
           <span class="chip" data-cuisine="Thai">🍜 Thai</span>
+          <span class="chip" data-cuisine="Mediterranean">🥙 Mediterranean</span>
         </div>
       </div>
 
@@ -333,6 +334,7 @@
         <span class="chip" data-cuisine="Chinese">🥢 Chinese</span>
         <span class="chip" data-cuisine="American">🍔 American</span>
         <span class="chip" data-cuisine="Thai">🍜 Thai</span>
+        <span class="chip" data-cuisine="Mediterranean">🥙 Mediterranean</span>
       </div>
     </div>
     <div class="rlist" id="rList"></div>
