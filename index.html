@@ -132,7 +132,7 @@
   .sopt-input-wrap button:active{background:var(--bg-tint);}
   .sopt-input-wrap button svg{width:18px;height:18px;stroke:var(--coral);}
   /* ---- cuisine filter row ---- */
-  .cuisine-row{margin-bottom:14px;position:relative;z-index:2;}
+  .cuisine-row{margin-bottom:10px;position:relative;z-index:2;}
   .cuisine-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;}
   .chip{background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);border-radius:20px;
     padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;
@@ -245,7 +245,6 @@
           <span class="chip" data-cuisine="Chinese">🥢 Chinese</span>
           <span class="chip" data-cuisine="American">🍔 American</span>
           <span class="chip" data-cuisine="Thai">🍜 Thai</span>
-          <span class="chip" data-cuisine="Mediterranean">🥙 Mediterranean</span>
         </div>
       </div>
 
@@ -324,7 +323,7 @@
       </div>
     </div>
     <!-- Cuisine filter on page 2 -->
-    <div class="cuisine-row" style="margin-top:14px;">
+    <div class="cuisine-row" style="margin-top:14px;margin-bottom:10px;">
       <div class="cuisine-chips" id="rCuisineChips">
         <span class="chip sel" data-cuisine="">🍽 All</span>
         <span class="chip" data-cuisine="Italian">🍝 Italian</span>
@@ -334,7 +333,6 @@
         <span class="chip" data-cuisine="Chinese">🥢 Chinese</span>
         <span class="chip" data-cuisine="American">🍔 American</span>
         <span class="chip" data-cuisine="Thai">🍜 Thai</span>
-        <span class="chip" data-cuisine="Mediterranean">🥙 Mediterranean</span>
       </div>
     </div>
     <div class="rlist" id="rList"></div>
@@ -485,7 +483,7 @@ async function askClaude(promptText){
   const payload = {
     model:"claude-sonnet-4-6", max_tokens:1600,
     messages:[{role:"user",content:promptText}],
-    tools:[{type:"web_search_20250305",name:"web_search",max_uses:3}]
+    tools:[{type:"web_search_20250305",name:"web_search"}]
   };
 
   const url = PROXY_URL || "https://api.anthropic.com/v1/messages";
@@ -508,11 +506,12 @@ async function getRestaurants(lat,lng){
   show('loading'); $('loadMain').textContent='Finding great spots near you…'; runSteps();
   const cuisineHint = selectedCuisine ? ` Focus specifically on ${selectedCuisine} cuisine restaurants.` : '';
   const p=`You are a local food guide with live web access. The user is at GPS latitude ${lat}, longitude ${lng}.
-Use web search to find the TEN best-reviewed, most popular restaurants within close walking/driving distance of those coordinates right now.${cuisineHint}
-Also search for any Beli app mentions, rankings or city guides for these restaurants.
+Use web search to find up to 5 popular, well-known restaurants near those coordinates.${cuisineHint}
+Search broadly — include any restaurants in the surrounding area even if reviews are limited. Small towns and suburbs are fine.
+Also check for any Beli app mentions for these restaurants.
 Respond with ONLY raw JSON, no markdown:
 {"found":true,"area":"neighbourhood, city","restaurants":[{"name":"","cuisine":"","rating":"4.6","reviews":"1,200","distance":"0.3 mi","blurb":"one short line on why it's loved","lat":40.7580,"lng":-73.9855,"beli_score":"8.9","beli_note":"#2 Italian in NYC on Beli"}]}
-Give exactly 10 restaurants, best first. Include lat/lng coordinates for each. beli_score and beli_note are optional — only include if found. If nothing found return {"found":false,"reason":"..."}.`;
+Return however many you find (up to 5), best first. Estimate lat/lng if needed. beli_score and beli_note optional. Only return {"found":false} if there are truly zero restaurants within 10 miles.`;
   try{
     const r=await askClaude(p); stopSteps();
     if(!r.found) return fail(r.reason||"Couldn't find restaurants near you. Try typing a name.");
